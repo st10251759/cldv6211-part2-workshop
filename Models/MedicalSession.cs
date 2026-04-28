@@ -17,6 +17,7 @@ namespace MediBook.Models
     public class MedicalSession
     {
         // Primary key — uniquely identifies each medical session record
+        [Key]
         public int SessionId { get; set; }
 
         // The name of the medical session.

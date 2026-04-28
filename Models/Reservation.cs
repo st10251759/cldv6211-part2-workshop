@@ -17,6 +17,7 @@ namespace MediBook.Models
     public class Reservation
     {
         // Primary key — uniquely identifies each reservation record
+        [Key]
         public int ReservationId { get; set; }
 
         // Foreign key linking this reservation to a Facility.

@@ -17,6 +17,7 @@ namespace MediBook.Models
     public class Facility
     {
         // Primary key — uniquely identifies each facility record
+        [Key]
         public int FacilityId { get; set; }
 
         // The name of the facility.
