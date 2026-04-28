@@ -1,5 +1,17 @@
+using MediBook.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace MediBook
 {
+/*
+==============================Code Attribution==================================
+ASP.NET Core Program Entry Point
+Author: Microsoft
+Link: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/startup
+Date Accessed: 28 April 2026
+==============================Code Attribution==================================
+*/
+
     public class Program
     {
         public static void Main(string[] args)
@@ -8,6 +20,10 @@ namespace MediBook
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            // Register MediBookDbContext with the SQL LocalDB connection string from appsettings.json
+            builder.Services.AddDbContext<MediBookDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("MediBookDbContext")));
 
             var app = builder.Build();
 
