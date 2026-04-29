@@ -181,6 +181,7 @@ namespace MediBook.Controllers
 
             var facility = await _context.Facilities
                 .Include(f => f.Reservations)
+                    .ThenInclude(r => r.MedicalSession)
                 .FirstOrDefaultAsync(f => f.FacilityId == id);
 
             if (facility == null) return NotFound();
@@ -200,13 +201,14 @@ namespace MediBook.Controllers
             if (facility == null) return NotFound();
 
             // VALIDATION: Block deletion if active reservations are linked to this facility
+            // This is a safety net — the view already prevents the button from showing
             if (facility.Reservations.Any())
             {
                 TempData["ErrorMessage"] =
                     $"Cannot delete '{facility.Name}' — it has " +
                     $"{facility.Reservations.Count} active reservation(s). " +
                     "Please remove all linked reservations before deleting this facility.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Delete), new { id });
             }
 
             // Delete the blob image from Azurite if it was uploaded there
@@ -223,6 +225,7 @@ namespace MediBook.Controllers
                 $"Facility '{facility.Name}' was deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
+
 
         // Helper — checks whether a facility with the given ID exists
         private bool FacilityExists(int id)

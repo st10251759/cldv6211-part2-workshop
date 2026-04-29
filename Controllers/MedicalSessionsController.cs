@@ -90,14 +90,11 @@ namespace MediBook.Controllers
                 }
                 catch (ArgumentException ex)
                 {
-                    // Validation errors from BlobService (file type, size, etc.)
                     ModelState.AddModelError("ImageFile", ex.Message);
                 }
                 catch (InvalidOperationException ex)
                 {
-                    // Azurite connection or upload errors
-                    ModelState.AddModelError("",
-                        $"Image upload failed: {ex.Message}");
+                    ModelState.AddModelError("", $"Image upload failed: {ex.Message}");
                 }
             }
 
@@ -124,11 +121,9 @@ namespace MediBook.Controllers
         {
             if (id != session.SessionId) return NotFound();
 
-            // Validate that StartDate is before EndDate
             if (session.StartDate >= session.EndDate)
                 ModelState.AddModelError("EndDate", "End date must be after the start date.");
 
-            // Remove ImageUrl from validation — it is managed by the controller
             ModelState.Remove("ImageUrl");
 
             if (ModelState.IsValid)
@@ -137,7 +132,6 @@ namespace MediBook.Controllers
                 {
                     if (session.ImageFile != null && session.ImageFile.Length > 0)
                     {
-                        // Delete the old blob from Azurite if it was a previously uploaded image
                         var existing = await _context.MedicalSessions
                             .AsNoTracking()
                             .FirstOrDefaultAsync(s => s.SessionId == id);
@@ -148,11 +142,8 @@ namespace MediBook.Controllers
                             await _blobService.DeleteImageAsync(existing.ImageUrl);
                         }
 
-                        // Upload the new image and update the URL
                         session.ImageUrl = await _blobService.UploadImageAsync(session.ImageFile);
                     }
-                    // If no new file uploaded, ImageUrl is posted back from the hidden field
-                    // and keeps its existing value — no change needed
 
                     _context.Update(session);
                     await _context.SaveChangesAsync();
@@ -163,14 +154,11 @@ namespace MediBook.Controllers
                 }
                 catch (ArgumentException ex)
                 {
-                    // Validation errors from BlobService (file type, size, etc.)
                     ModelState.AddModelError("ImageFile", ex.Message);
                 }
                 catch (InvalidOperationException ex)
                 {
-                    // Azurite connection or upload errors
-                    ModelState.AddModelError("",
-                        $"Image upload failed: {ex.Message}");
+                    ModelState.AddModelError("", $"Image upload failed: {ex.Message}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -182,13 +170,15 @@ namespace MediBook.Controllers
             return View(session);
         }
 
-        // GET: MedicalSessions/Delete/5 — displays delete confirmation page
+        // GET: MedicalSessions/Delete/5 — loads session WITH reservations and session names
+        // for display in the blocked-state table
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
 
             var session = await _context.MedicalSessions
                 .Include(s => s.Reservations)
+                    .ThenInclude(r => r.Facility)
                 .FirstOrDefaultAsync(s => s.SessionId == id);
 
             if (session == null) return NotFound();
@@ -196,7 +186,8 @@ namespace MediBook.Controllers
             return View(session);
         }
 
-        // POST: MedicalSessions/Delete/5 — blocks deletion if active reservations exist
+        // POST: MedicalSessions/Delete/5 — blocks deletion if active reservations exist,
+        // redirects back to the Delete view (not Index) so the blocked state is shown in context
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -207,14 +198,16 @@ namespace MediBook.Controllers
 
             if (session == null) return NotFound();
 
-            // VALIDATION: Block deletion if active reservations are linked to this session
+            // VALIDATION: Block deletion if active reservations are linked to this session.
+            // Redirects back to Delete view so the user sees the blocked state with the
+            // reservations table — not a generic Index message.
             if (session.Reservations.Any())
             {
                 TempData["ErrorMessage"] =
                     $"Cannot delete '{session.Name}' — it has " +
                     $"{session.Reservations.Count} active reservation(s). " +
                     "Please remove all linked reservations before deleting this session.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Delete), new { id });
             }
 
             // Delete the blob image from Azurite if it was uploaded there

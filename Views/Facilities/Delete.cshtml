@@ -2,17 +2,24 @@
 
 @{
     ViewData["Title"] = "Delete Facility";
+    bool hasReservations = Model.Reservations != null && Model.Reservations.Any();
 }
 
-<!-- Page Header -->
+<!-- Page Header — red if can delete, navy-warning if blocked -->
 <div class="page-header"
-     style="background:linear-gradient(135deg,#7f1d1d,#dc2626,#ef4444);">
+     style="background: @(hasReservations
+              ? "linear-gradient(135deg,#0F2854,#1C4D8D)"
+              : "linear-gradient(135deg,#7f1d1d,#dc2626,#ef4444)");">
     <div class="container">
         <div class="page-header-icon" style="background:rgba(255,255,255,0.15);">
-            <i class="fas fa-triangle-exclamation"></i>
+            <i class="fas fa-@(hasReservations ? "ban" : "triangle-exclamation")"></i>
         </div>
         <h1>Delete Facility</h1>
-        <p>This action is permanent and cannot be undone</p>
+        <p>
+            @(hasReservations
+                        ? "This facility cannot be deleted — active reservations are linked to it"
+                        : "This action is permanent and cannot be undone")
+        </p>
     </div>
 </div>
 
@@ -35,82 +42,241 @@
                 </ol>
             </nav>
 
-            <div class="delete-card">
+            @* ══════════════════════════════════════════
+               BLOCKED STATE — has active reservations
+            ══════════════════════════════════════════ *@
+            @if (hasReservations)
+            {
+                <div class="detail-card" style="border:2px solid #BDE8F5;">
 
-                <!-- Card Header -->
-                <div class="delete-card-header">
-                    <i class="fas fa-trash fa-lg"></i>
-                    <div>
-                        <h4 style="margin:0;">Confirm Deletion</h4>
-                        <span style="color:rgba(255,255,255,0.75); font-size:0.85rem;">
-                            You are about to permanently delete this facility
-                        </span>
-                    </div>
-                </div>
-
-                <div class="p-4">
-
-                    <!-- Warning Banner -->
-                    <div class="delete-warning">
-                        <i class="fas fa-triangle-exclamation fa-lg"></i>
-                        <span>
-                            <strong>Warning:</strong> Deleting this facility will permanently remove
-                            it from the system. This action <strong>cannot be undone</strong>.
-                            Ensure no active reservations are linked to this facility before proceeding.
-                        </span>
-                    </div>
-
-                    <!-- Facility Preview Card -->
-                    <div class="row g-3 align-items-center mb-4 p-3"
-                         style="background:#f8faff; border-radius:12px; border:1px solid #e2e8f0;">
-                        <div class="col-auto">
-                            <img src="@(Model.ImageUrl ?? "/images/placeholder-facility.jpg")"
-                                 alt="@Model.Name"
-                                 style="width:80px; height:70px; object-fit:cover;
-                                        border-radius:10px; border:2px solid #BDE8F5;"
-                                 onerror="this.src='/images/placeholder-facility.jpg'" />
-                        </div>
-                        <div class="col">
-                            <div style="font-weight:700; font-size:1.05rem; color:#0F2854;">
-                                @Model.Name
-                            </div>
-                            <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
-                                <i class="fas fa-location-dot me-1" style="color:#4988C4;"></i>
-                                @Model.Location
-                            </div>
-                            <div style="font-size:0.82rem; color:#94a3b8; margin-top:4px;">
-                                <i class="fas fa-users me-1"></i> Capacity: @Model.Capacity people
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <span style="background:#fee2e2; color:#dc2626; padding:4px 12px;
-                                         border-radius:20px; font-size:0.78rem; font-weight:700;">
-                                <i class="fas fa-trash me-1"></i> To Be Deleted
+                    <!-- Blocked Header -->
+                    <div class="detail-card-header">
+                        <i class="fas fa-ban fa-lg"></i>
+                        <div>
+                            <h4 style="margin:0;">Deletion Blocked</h4>
+                            <span style="color:rgba(255,255,255,0.75); font-size:0.85rem;">
+                                @Model.Name cannot be deleted while reservations are active
                             </span>
                         </div>
                     </div>
 
-                    <!-- Confirm Delete Form -->
-                    <form asp-action="Delete" class="d-flex gap-3 flex-wrap">
-                        <input type="hidden" asp-for="FacilityId" />
-                        <button type="submit"
-                                class="btn-action btn-action-delete"
-                                style="padding:11px 26px; font-size:0.92rem; border-radius:50px;">
-                            <i class="fas fa-trash"></i> Yes, Delete Permanently
-                        </button>
-                        <a asp-action="Details" asp-route-id="@Model.FacilityId"
-                           class="btn-medibook-outline">
-                            <i class="fas fa-eye"></i> View Details
-                        </a>
-                        <a asp-action="Index" class="btn-medibook-outline">
-                            <i class="fas fa-arrow-left"></i> Cancel
-                        </a>
-                    </form>
+                    <div class="p-4">
 
+                        <!-- Blocked Alert Banner -->
+                        <div class="d-flex align-items-start gap-3 mb-4 p-3"
+                             style="background:#fef2f2; border-radius:12px;
+                                        border-left:4px solid #dc2626;">
+                            <i class="fas fa-circle-exclamation fa-lg mt-1"
+                               style="color:#dc2626; flex-shrink:0;"></i>
+                            <div>
+                                <div style="font-weight:700; color:#991b1b;
+                                                font-size:0.95rem; margin-bottom:4px;">
+                                    Cannot Delete — Active Reservations Exist
+                                </div>
+                                <div style="color:#7f1d1d; font-size:0.88rem; line-height:1.6;">
+                                    <strong>@Model.Name</strong> has
+                                    <strong>
+                                        @Model.Reservations.Count
+                                        reservation@(Model.Reservations.Count == 1 ? "" : "s")
+                                    </strong>
+                                    currently linked to it. You must remove all associated
+                                    reservations before this facility can be deleted.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Facility Summary -->
+                        <div class="row g-3 align-items-center mb-4 p-3"
+                             style="background:#f8faff; border-radius:12px;
+                                        border:1px solid #e2e8f0;">
+                            <div class="col-auto">
+                                <img src="@(Model.ImageUrl ?? "/images/placeholder-facility.jpg")"
+                                     alt="@Model.Name"
+                                     style="width:80px; height:70px; object-fit:cover;
+                                                border-radius:10px; border:2px solid #BDE8F5;"
+                                     onerror="this.src='/images/placeholder-facility.jpg'" />
+                            </div>
+                            <div class="col">
+                                <div style="font-weight:700; font-size:1.05rem; color:#0F2854;">
+                                    @Model.Name
+                                </div>
+                                <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+                                    <i class="fas fa-location-dot me-1"
+                                       style="color:#4988C4;"></i>@Model.Location
+                                </div>
+                                <div style="font-size:0.82rem; color:#94a3b8; margin-top:4px;">
+                                    <i class="fas fa-users me-1"></i>
+                                    Capacity: @Model.Capacity people
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <span style="background:#BDE8F5; color:#0F2854; padding:4px 12px;
+                                                 border-radius:20px; font-size:0.78rem; font-weight:700;">
+                                    <i class="fas fa-calendar-check me-1"></i>
+                                    @Model.Reservations.Count Active Reservation@(Model.Reservations.Count == 1 ? "" : "s")
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Active Reservations List -->
+                        <div class="mb-4">
+                            <p class="form-label mb-2" style="color:#4988C4;">
+                                <i class="fas fa-list me-1"></i>
+                                Linked Reservations — must be removed first
+                            </p>
+                            <div style="border-radius:12px; overflow:hidden;
+                                            border:1px solid #e2e8f0;">
+                                <table class="table medibook-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Reservation ID</th>
+                                            <th>Medical Session</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th style="text-align:center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var r in Model.Reservations)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <span style="background:linear-gradient(135deg,#0F2854,#1C4D8D);
+                                                                         color:#BDE8F5; padding:3px 10px;
+                                                                         border-radius:20px; font-size:0.78rem;
+                                                                         font-weight:700;">
+                                                        #@r.ReservationId
+                                                    </span>
+                                                </td>
+                                                <td style="font-size:0.88rem; color:#334155;">
+                                                    @(r.MedicalSession?.Name ?? "—")
+                                                </td>
+                                                <td>
+                                                    <span class="badge-capacity"
+                                                          style="font-size:0.78rem;">
+                                                        @r.StartDate.ToString("dd MMM yyyy")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge-capacity"
+                                                          style="font-size:0.78rem;">
+                                                        @r.EndDate.ToString("dd MMM yyyy")
+                                                    </span>
+                                                </td>
+                                                <td style="text-align:center;">
+                                                    <a asp-controller="Reservations"
+                                                       asp-action="Delete"
+                                                       asp-route-id="@r.ReservationId"
+                                                       class="btn-action btn-action-delete">
+                                                        <i class="fas fa-trash"></i> Remove
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons — no delete button shown -->
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a asp-action="Details" asp-route-id="@Model.FacilityId"
+                               class="btn-medibook-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a asp-action="Index" class="btn-medibook-outline">
+                                <i class="fas fa-arrow-left"></i> Back to Facilities
+                            </a>
+                        </div>
+
+                    </div>
                 </div>
-            </div>
+            }
+
+            @* ══════════════════════════════════════════
+               SAFE STATE — no reservations, can delete
+            ══════════════════════════════════════════ *@
+            else
+            {
+                <div class="delete-card">
+
+                    <!-- Card Header -->
+                    <div class="delete-card-header">
+                        <i class="fas fa-trash fa-lg"></i>
+                        <div>
+                            <h4 style="margin:0;">Confirm Deletion</h4>
+                            <span style="color:rgba(255,255,255,0.75); font-size:0.85rem;">
+                                You are about to permanently delete this facility
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+
+                        <!-- Warning Banner -->
+                        <div class="delete-warning">
+                            <i class="fas fa-triangle-exclamation fa-lg"></i>
+                            <span>
+                                <strong>Warning:</strong> Deleting this facility will permanently
+                                remove it from the system.
+                                This action <strong>cannot be undone</strong>.
+                            </span>
+                        </div>
+
+                        <!-- Facility Preview -->
+                        <div class="row g-3 align-items-center mb-4 p-3"
+                             style="background:#f8faff; border-radius:12px;
+                                        border:1px solid #e2e8f0;">
+                            <div class="col-auto">
+                                <img src="@(Model.ImageUrl ?? "/images/placeholder-facility.jpg")"
+                                     alt="@Model.Name"
+                                     style="width:80px; height:70px; object-fit:cover;
+                                                border-radius:10px; border:2px solid #BDE8F5;"
+                                     onerror="this.src='/images/placeholder-facility.jpg'" />
+                            </div>
+                            <div class="col">
+                                <div style="font-weight:700; font-size:1.05rem; color:#0F2854;">
+                                    @Model.Name
+                                </div>
+                                <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+                                    <i class="fas fa-location-dot me-1"
+                                       style="color:#4988C4;"></i>@Model.Location
+                                </div>
+                                <div style="font-size:0.82rem; color:#94a3b8; margin-top:4px;">
+                                    <i class="fas fa-users me-1"></i>
+                                    Capacity: @Model.Capacity people
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <span style="background:#fee2e2; color:#dc2626; padding:4px 12px;
+                                                 border-radius:20px; font-size:0.78rem; font-weight:700;">
+                                    <i class="fas fa-trash me-1"></i> To Be Deleted
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Delete Form -->
+                        <form asp-action="Delete" class="d-flex gap-3 flex-wrap">
+                            <input type="hidden" asp-for="FacilityId" />
+                            <button type="submit"
+                                    class="btn-action btn-action-delete"
+                                    style="padding:11px 26px; font-size:0.92rem;
+                                               border-radius:50px;">
+                                <i class="fas fa-trash"></i> Yes, Delete Permanently
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.FacilityId"
+                               class="btn-medibook-outline">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a asp-action="Index" class="btn-medibook-outline">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                        </form>
+
+                    </div>
+                </div>
+            }
 
         </div>
     </div>
-</div>
 </div>
