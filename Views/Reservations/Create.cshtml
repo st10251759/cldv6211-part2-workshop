@@ -1,46 +1,50 @@
 ﻿@model MediBook.Models.Reservation
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Add Reservation";
 }
 
-<h1>Create</h1>
+<h2>Add Reservation</h2>
 
-<h4>Reservation</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="FacilityId" class="control-label"></label>
-                <select asp-for="FacilityId" class ="form-control" asp-items="ViewBag.FacilityId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="SessionId" class="control-label"></label>
-                <select asp-for="SessionId" class ="form-control" asp-items="ViewBag.SessionId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <div>
+        <label asp-for="FacilityId"></label>
+        <select asp-for="FacilityId" asp-items="ViewBag.FacilityId">
+            <option value="">-- Select Facility --</option>
+        </select>
+        <span asp-validation-for="FacilityId"></span>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div>
+        <label asp-for="SessionId"></label>
+        <select asp-for="SessionId" asp-items="ViewBag.SessionId">
+            <option value="">-- Select Medical Session --</option>
+        </select>
+        <span asp-validation-for="SessionId"></span>
+    </div>
+
+    <div>
+        <label asp-for="StartDate"></label>
+        <input asp-for="StartDate" type="datetime-local" />
+        <span asp-validation-for="StartDate"></span>
+    </div>
+
+    <div>
+        <label asp-for="EndDate"></label>
+        <input asp-for="EndDate" type="datetime-local" />
+        <span asp-validation-for="EndDate"></span>
+    </div>
+
+    <div>
+        <input type="submit" value="Save" />
+        <a asp-action="Index">Back to List</a>
+    </div>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

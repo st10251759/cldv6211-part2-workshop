@@ -1,15 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MediBook.Data;
 using MediBook.Models;
 
+/*
+==============================Code Attribution==================================
+ASP.NET MVC Controllers
+Author: Microsoft
+Link: https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions
+Date Accessed: 28 April 2026
+==============================Code Attribution==================================
+*/
+
 namespace MediBook.Controllers
 {
+    // Handles all CRUD operations for Reservation records.
+    // A reservation links a Facility to a MedicalSession for a specific time slot.
     public class ReservationsController : Controller
     {
         private readonly MediBookDbContext _context;
@@ -19,55 +26,57 @@ namespace MediBook.Controllers
             _context = context;
         }
 
-        // GET: Reservations
+        // GET: Reservations — retrieves all reservations including related Facility and Session data
         public async Task<IActionResult> Index()
         {
-            var mediBookDbContext = _context.Reservations.Include(r => r.Facility).Include(r => r.MedicalSession);
-            return View(await mediBookDbContext.ToListAsync());
+            var reservations = _context.Reservations
+                .Include(r => r.Facility)
+                .Include(r => r.MedicalSession);
+            return View(await reservations.ToListAsync());
         }
 
         // GET: Reservations/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var reservation = await _context.Reservations
                 .Include(r => r.Facility)
                 .Include(r => r.MedicalSession)
-                .FirstOrDefaultAsync(m => m.ReservationId == id);
-            if (reservation == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(r => r.ReservationId == id);
+
+            if (reservation == null) return NotFound();
 
             return View(reservation);
         }
 
-        // GET: Reservations/Create
+        // GET: Reservations/Create — populates dropdowns for Facility and MedicalSession
         public IActionResult Create()
         {
-            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Location");
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name");
             ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name");
             return View();
         }
 
-        // POST: Reservations/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Reservations/Create — validates and saves the new reservation
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ReservationId,FacilityId,SessionId,StartDate,EndDate")] Reservation reservation)
         {
+            // Validates that StartDate is before EndDate
+            if (reservation.StartDate >= reservation.EndDate)
+            {
+                ModelState.AddModelError("EndDate", "End date must be after the start date.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Location", reservation.FacilityId);
+
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name", reservation.FacilityId);
             ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name", reservation.SessionId);
             return View(reservation);
         }
@@ -75,31 +84,28 @@ namespace MediBook.Controllers
         // GET: Reservations/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var reservation = await _context.Reservations.FindAsync(id);
-            if (reservation == null)
-            {
-                return NotFound();
-            }
-            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Location", reservation.FacilityId);
+
+            if (reservation == null) return NotFound();
+
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name", reservation.FacilityId);
             ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name", reservation.SessionId);
             return View(reservation);
         }
 
-        // POST: Reservations/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Reservations/Edit/5 — updates the reservation record
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ReservationId,FacilityId,SessionId,StartDate,EndDate")] Reservation reservation)
         {
-            if (id != reservation.ReservationId)
+            if (id != reservation.ReservationId) return NotFound();
+
+            // Validates that StartDate is before EndDate
+            if (reservation.StartDate >= reservation.EndDate)
             {
-                return NotFound();
+                ModelState.AddModelError("EndDate", "End date must be after the start date.");
             }
 
             if (ModelState.IsValid)
@@ -111,18 +117,13 @@ namespace MediBook.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ReservationExists(reservation.ReservationId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!ReservationExists(reservation.ReservationId)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Location", reservation.FacilityId);
+
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name", reservation.FacilityId);
             ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name", reservation.SessionId);
             return View(reservation);
         }
@@ -130,24 +131,19 @@ namespace MediBook.Controllers
         // GET: Reservations/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var reservation = await _context.Reservations
                 .Include(r => r.Facility)
                 .Include(r => r.MedicalSession)
-                .FirstOrDefaultAsync(m => m.ReservationId == id);
-            if (reservation == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(r => r.ReservationId == id);
+
+            if (reservation == null) return NotFound();
 
             return View(reservation);
         }
 
-        // POST: Reservations/Delete/5
+        // POST: Reservations/Delete/5 — removes the reservation from the database
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -156,15 +152,15 @@ namespace MediBook.Controllers
             if (reservation != null)
             {
                 _context.Reservations.Remove(reservation);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
+        // Helper — checks whether a reservation with the given ID exists
         private bool ReservationExists(int id)
         {
-            return _context.Reservations.Any(e => e.ReservationId == id);
+            return _context.Reservations.Any(r => r.ReservationId == id);
         }
     }
 }

@@ -1,42 +1,27 @@
 ﻿@model MediBook.Models.Reservation
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Reservation Details";
 }
 
-<h1>Details</h1>
+<h2>Reservation Details</h2>
 
-<div>
-    <h4>Reservation</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Facility)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Facility.Location)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MedicalSession)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MedicalSession.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StartDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StartDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EndDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EndDate)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.ReservationId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<dl>
+    <dt>Reservation ID</dt>
+    <dd>@Html.DisplayFor(m => m.ReservationId)</dd>
+
+    <dt>Facility</dt>
+    <dd>@Model.Facility?.Name</dd>
+
+    <dt>Medical Session</dt>
+    <dd>@Model.MedicalSession?.Name</dd>
+
+    <dt>@Html.DisplayNameFor(m => m.StartDate)</dt>
+    <dd>@Html.DisplayFor(m => m.StartDate)</dd>
+
+    <dt>@Html.DisplayNameFor(m => m.EndDate)</dt>
+    <dd>@Html.DisplayFor(m => m.EndDate)</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.ReservationId">Edit</a> |
+<a asp-action="Index">Back to List</a>

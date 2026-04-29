@@ -1,53 +1,52 @@
 ﻿@model MediBook.Models.MedicalSession
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Add Medical Session";
 }
 
-<h1>Create</h1>
+<h2>Add Medical Session</h2>
 
-<h4>MedicalSession</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <div>
+        <label asp-for="Name"></label>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name"></span>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div>
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description"></textarea>
+        <span asp-validation-for="Description"></span>
+    </div>
+
+    <div>
+        <label asp-for="StartDate"></label>
+        <input asp-for="StartDate" type="datetime-local" />
+        <span asp-validation-for="StartDate"></span>
+    </div>
+
+    <div>
+        <label asp-for="EndDate"></label>
+        <input asp-for="EndDate" type="datetime-local" />
+        <span asp-validation-for="EndDate"></span>
+    </div>
+
+    <div>
+        <label asp-for="ImageUrl"></label>
+        <input asp-for="ImageUrl" />
+        <span asp-validation-for="ImageUrl"></span>
+    </div>
+
+    <div>
+        <input type="submit" value="Save" />
+        <a asp-action="Index">Back to List</a>
+    </div>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -1,53 +1,40 @@
 ﻿@model IEnumerable<MediBook.Models.Reservation>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Reservations";
 }
 
-<h1>Index</h1>
-
+<h2>Reservations</h2>
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Add New Reservation</a>
 </p>
-<table class="table">
+
+<table>
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Facility)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MedicalSession)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndDate)
-            </th>
-            <th></th>
+            <th>Reservation ID</th>
+            <th>Facility</th>
+            <th>Medical Session</th>
+            <th>@Html.DisplayNameFor(m => m.StartDate)</th>
+            <th>@Html.DisplayNameFor(m => m.EndDate)</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Facility.Location)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MedicalSession.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ReservationId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ReservationId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ReservationId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.ReservationId)</td>
+                <td>@item.Facility?.Name</td>
+                <td>@item.MedicalSession?.Name</td>
+                <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.ReservationId">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.ReservationId">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ReservationId">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
