@@ -15,6 +15,46 @@
     </div>
 </div>
 
+<!-- Search Bar -->
+<div class="container mt-4">
+    <form asp-action="Index" method="get">
+        <div class="d-flex gap-3 align-items-center flex-wrap"
+             style="background:#fff; border-radius:14px; padding:1.2rem 1.5rem;
+                    box-shadow:0 4px 20px rgba(15,40,84,0.08);
+                    border:1px solid rgba(189,232,245,0.4);">
+            <div class="flex-grow-1" style="min-width:220px;">
+                <div style="position:relative;">
+                    <i class="fas fa-search"
+                       style="position:absolute; left:14px; top:50%;
+                              transform:translateY(-50%); color:#4988C4;"></i>
+                    <input type="text"
+                           name="searchQuery"
+                           value="@ViewData["SearchQuery"]"
+                           class="form-control"
+                           style="padding-left:42px;"
+                           placeholder="Search by Reservation ID or Session Name..." />
+                </div>
+            </div>
+            <button type="submit" class="btn-medibook-primary" style="white-space:nowrap;">
+                <i class="fas fa-search"></i> Search
+            </button>
+            @if (!string.IsNullOrEmpty(ViewData["SearchQuery"]?.ToString()))
+            {
+                <a asp-action="Index" class="btn-medibook-outline" style="white-space:nowrap;">
+                    <i class="fas fa-xmark"></i> Clear
+                </a>
+            }
+        </div>
+        @if (!string.IsNullOrEmpty(ViewData["SearchQuery"]?.ToString()))
+        {
+            <p class="mt-2 mb-0" style="font-size:0.85rem; color:#64748b; padding-left:4px;">
+                <i class="fas fa-filter me-1" style="color:#4988C4;"></i>
+                Showing results for: <strong>"@ViewData["SearchQuery"]"</strong>
+            </p>
+        }
+    </form>
+</div>
+
 <!-- Main Content -->
 <div class="container section-padding">
 

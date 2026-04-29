@@ -27,7 +27,7 @@ namespace MediBook.Controllers
             _context = context;
         }
 
-        // GET: Reservations — retrieves all reservations with optional search
+        // GET: Reservations — with optional search
         public async Task<IActionResult> Index(string? searchQuery)
         {
             ViewData["SearchQuery"] = searchQuery;
@@ -37,9 +37,10 @@ namespace MediBook.Controllers
                 .Include(r => r.MedicalSession)
                 .AsQueryable();
 
-            // SEARCH: filter by ReservationId or MedicalSession Name
+            // ── SEARCH: filter by ReservationId or MedicalSession Name ──
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
+                // Try to parse as integer for ID search
                 bool isIdSearch = int.TryParse(searchQuery.Trim(), out int searchId);
 
                 reservations = reservations.Where(r =>
