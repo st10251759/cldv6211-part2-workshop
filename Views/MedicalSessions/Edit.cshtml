@@ -38,12 +38,16 @@
             <div class="medibook-form-card">
 
                 <!-- Card Header -->
-                <div class="detail-card-header" style="border-radius:12px 12px 0 0; margin:-2.5rem -2.5rem 2rem -2.5rem; padding:1.5rem 2rem;">
+                <div class="detail-card-header"
+                     style="border-radius:12px 12px 0 0;
+                            margin:-2.5rem -2.5rem 2rem -2.5rem;
+                            padding:1.5rem 2rem;">
                     <i class="fas fa-pen"></i>
                     <h4>Edit — @Model.Name</h4>
                 </div>
 
-                <form asp-action="Edit">
+                <!-- enctype must be multipart to support file uploads -->
+                <form asp-action="Edit" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly"
                          class="alert alert-danger d-flex align-items-center gap-2 mb-4"
                          style="border-radius:10px; font-size:0.88rem;">
@@ -52,6 +56,9 @@
                     </div>
 
                     <input type="hidden" asp-for="SessionId" />
+
+                    <!-- Hidden field preserves current ImageUrl when no new file is uploaded -->
+                    <input type="hidden" asp-for="ImageUrl" />
 
                     <!-- Session Name -->
                     <div class="mb-4">
@@ -77,45 +84,100 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label asp-for="StartDate" class="form-label">
-                                <i class="fas fa-calendar-day"></i> Start Date & Time
+                                <i class="fas fa-calendar-day"></i> Start Date &amp; Time
                             </label>
-                            <input asp-for="StartDate" class="form-control" type="datetime-local" />
+                            <input asp-for="StartDate"
+                                   class="form-control"
+                                   type="datetime-local" />
                             <span asp-validation-for="StartDate" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="EndDate" class="form-label">
-                                <i class="fas fa-calendar-check"></i> End Date & Time
+                                <i class="fas fa-calendar-check"></i> End Date &amp; Time
                             </label>
-                            <input asp-for="EndDate" class="form-control" type="datetime-local" />
+                            <input asp-for="EndDate"
+                                   class="form-control"
+                                   type="datetime-local" />
                             <span asp-validation-for="EndDate" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <!-- Image URL -->
+                    <!-- Current Image & Replace Upload -->
                     <div class="mb-4">
-                        <label asp-for="ImageUrl" class="form-label">
-                            <i class="fas fa-image"></i> Image URL
-                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
+                        <label class="form-label">
+                            <i class="fas fa-image"></i> Session Image
                         </label>
-                        <input asp-for="ImageUrl" class="form-control" />
-                        <div class="form-text">Leave blank to use the default placeholder image.</div>
-                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                    </div>
 
-                    <!-- Current Image Preview -->
-                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                    {
-                        <div class="mb-4 p-3"
-                             style="background:#f8faff; border-radius:10px; border:1px solid #e2e8f0;">
-                            <p class="form-label mb-2">
-                                <i class="fas fa-eye" style="color:#4988C4;"></i> Current Image Preview
+                        <!-- Current image preview -->
+                        <div class="mb-3 p-3"
+                             style="background:#f8faff; border-radius:10px;
+                                    border:1px solid #e2e8f0;">
+                            <p class="form-label mb-2" style="font-size:0.82rem;">
+                                <i class="fas fa-eye" style="color:#4988C4;"></i> Current Image
                             </p>
-                            <img src="@Model.ImageUrl"
+                            <img id="currentImage"
+                                 src="@Model.ImageUrl"
                                  alt="Current Session Image"
-                                 style="height:120px; width:auto; border-radius:8px; border:2px solid #BDE8F5;"
+                                 style="height:120px; width:auto; border-radius:8px;
+                                        border:2px solid #BDE8F5;"
                                  onerror="this.src='/images/placeholder-session.jpg'" />
                         </div>
-                    }
+
+                        <!-- Replace image upload -->
+                        <p class="form-label mb-2" style="font-size:0.82rem; color:#64748b;">
+                            <i class="fas fa-rotate me-1" style="color:#4988C4;"></i>
+                            Replace Image
+                            <span style="font-weight:400; color:#94a3b8;">
+                                (optional — leave blank to keep current)
+                            </span>
+                        </p>
+
+                        <div style="border:2px dashed #BDE8F5; border-radius:12px;
+                                    padding:1.2rem; text-align:center; background:#f8faff;
+                                    transition: border-color 0.3s ease;"
+                             id="dropZoneEdit"
+                             ondragover="event.preventDefault(); this.style.borderColor='#4988C4';"
+                             ondragleave="this.style.borderColor='#BDE8F5';"
+                             ondrop="handleDrop(event, 'ImageFileInput', 'previewEdit', 'dropZoneEdit')">
+                            <i class="fas fa-cloud-arrow-up fa-xl mb-1"
+                               style="color:#4988C4;"></i>
+                            <p class="mb-0 mt-1" style="font-size:0.85rem; color:#64748b;">
+                                Drag &amp; drop a new image, or
+                                <label for="ImageFileInput"
+                                       style="color:#1C4D8D; font-weight:600;
+                                              cursor:pointer; text-decoration:underline;">
+                                    browse
+                                </label>
+                            </p>
+                            <p class="mb-0 mt-1" style="font-size:0.75rem; color:#94a3b8;">
+                                JPG, PNG, GIF, WEBP &mdash; max 5 MB
+                            </p>
+                            <input asp-for="ImageFile"
+                                   type="file"
+                                   id="ImageFileInput"
+                                   accept="image/*"
+                                   class="d-none"
+                                   onchange="previewImage(this, 'previewEdit')" />
+                        </div>
+
+                        <!-- New image preview -->
+                        <div id="previewEdit" class="mt-3 d-none">
+                            <p class="form-label mb-2" style="font-size:0.82rem;">
+                                <i class="fas fa-eye" style="color:#4988C4;"></i> New Image Preview
+                            </p>
+                            <img id="previewEditImg"
+                                 src="#" alt="New Preview"
+                                 style="height:120px; width:auto; border-radius:10px;
+                                        border:2px solid #4988C4;" />
+                            <button type="button"
+                                    class="btn-action btn-action-delete ms-3"
+                                    onclick="clearImage('ImageFileInput', 'previewEdit')">
+                                <i class="fas fa-xmark"></i> Remove
+                            </button>
+                        </div>
+
+                        <span asp-validation-for="ImageFile" class="text-danger"></span>
+                    </div>
 
                     <!-- Action Buttons -->
                     <div class="d-flex gap-3 pt-2 flex-wrap">
@@ -141,4 +203,34 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        function previewImage(input, previewId) {
+            const previewContainer = document.getElementById(previewId);
+            const previewImg = document.getElementById(previewId + 'Img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg.src = e.target.result;
+                    previewContainer.classList.remove('d-none');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearImage(inputId, previewId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(previewId).classList.add('d-none');
+        }
+
+        function handleDrop(event, inputId, previewId, dropZoneId) {
+            event.preventDefault();
+            document.getElementById(dropZoneId).style.borderColor = '#BDE8F5';
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const input = document.getElementById(inputId);
+                input.files = files;
+                previewImage(input, previewId);
+            }
+        }
+    </script>
 }

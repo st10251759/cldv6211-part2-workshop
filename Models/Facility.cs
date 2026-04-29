@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 /*
 ==============================Code Attribution==================================
@@ -44,12 +45,18 @@ namespace MediBook.Models
         [Range(1, int.MaxValue, ErrorMessage = "Capacity must be greater than 0.")]
         public int Capacity { get; set; }
 
-        // Optional URL pointing to an image representing the facility.
-        // Defaults to the local placeholder image in wwwroot/images.
-        // Limited to 500 characters to accommodate long URLs.
-        [Display(Name = "Image URL")]
+        // Stores the Azurite blob URL (or placeholder path) for the facility image.
+        // Set by the controller after upload — not entered manually by the user.
+        // Limited to 500 characters to accommodate long blob URLs.
+        [Display(Name = "Image")]
         [StringLength(500)]
         public string? ImageUrl { get; set; } = "/images/placeholder-facility.jpg";
+
+        // NOT mapped to the database — used only to receive the uploaded file from the form.
+        // The controller reads this, uploads it to Azurite, and stores the returned URL in ImageUrl.
+        [NotMapped]
+        [Display(Name = "Upload Image")]
+        public IFormFile? ImageFile { get; set; }
 
         // Navigation property — collection of all reservations linked to this facility.
         // Used to check for associated reservations before allowing deletion,

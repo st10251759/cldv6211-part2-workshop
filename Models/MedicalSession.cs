@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 /*
 ==============================Code Attribution==================================
@@ -44,12 +45,18 @@ namespace MediBook.Models
         [Display(Name = "End Date")]
         public DateTime EndDate { get; set; }
 
-        // Optional URL pointing to an image representing the medical session.
-        // Defaults to the local placeholder image in wwwroot/images.
-        // Limited to 500 characters to accommodate long URLs.
-        [Display(Name = "Image URL")]
+        // Stores the Azurite blob URL (or placeholder path) for the session image.
+        // Set by the controller after upload — not entered manually by the user.
+        // Limited to 500 characters to accommodate long blob URLs.
+        [Display(Name = "Image")]
         [StringLength(500)]
         public string? ImageUrl { get; set; } = "/images/placeholder-session.jpg";
+
+        // NOT mapped to the database — used only to receive the uploaded file from the form.
+        // The controller reads this, uploads it to Azurite, and stores the returned URL in ImageUrl.
+        [NotMapped]
+        [Display(Name = "Upload Image")]
+        public IFormFile? ImageFile { get; set; }
 
         // Navigation property — collection of all reservations linked to this session.
         // Used to check for associated reservations before allowing deletion.

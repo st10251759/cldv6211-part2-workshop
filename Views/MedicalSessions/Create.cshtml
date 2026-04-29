@@ -38,15 +38,19 @@
             <div class="medibook-form-card">
 
                 <!-- Card Header -->
-                <div class="detail-card-header" style="border-radius:12px 12px 0 0; margin:-2.5rem -2.5rem 2rem -2.5rem; padding:1.5rem 2rem;">
+                <div class="detail-card-header"
+                     style="border-radius:12px 12px 0 0;
+                            margin:-2.5rem -2.5rem 2rem -2.5rem;
+                            padding:1.5rem 2rem;">
                     <i class="fas fa-stethoscope"></i>
                     <h4>Session Information</h4>
                 </div>
 
-                <form asp-action="Create">
+                <!-- enctype must be multipart to support file uploads -->
+                <form asp-action="Create" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly"
                          class="alert alert-danger d-flex align-items-center gap-2 mb-4"
-                         style="border-radius:10px; font-size:0.88rem; display:none!important;">
+                         style="border-radius:10px; font-size:0.88rem;">
                         <i class="fas fa-circle-exclamation"></i>
                         <div></div>
                     </div>
@@ -80,7 +84,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label asp-for="StartDate" class="form-label">
-                                <i class="fas fa-calendar-day"></i> Start Date & Time
+                                <i class="fas fa-calendar-day"></i> Start Date &amp; Time
                             </label>
                             <input asp-for="StartDate"
                                    class="form-control"
@@ -89,7 +93,7 @@
                         </div>
                         <div class="col-md-6">
                             <label asp-for="EndDate" class="form-label">
-                                <i class="fas fa-calendar-check"></i> End Date & Time
+                                <i class="fas fa-calendar-check"></i> End Date &amp; Time
                             </label>
                             <input asp-for="EndDate"
                                    class="form-control"
@@ -98,17 +102,59 @@
                         </div>
                     </div>
 
-                    <!-- Image URL -->
+                    <!-- Image Upload -->
                     <div class="mb-4">
-                        <label asp-for="ImageUrl" class="form-label">
-                            <i class="fas fa-image"></i> Image URL
+                        <label asp-for="ImageFile" class="form-label">
+                            <i class="fas fa-upload"></i> Upload Session Image
                             <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
                         </label>
-                        <input asp-for="ImageUrl"
-                               class="form-control"
-                               placeholder="/images/placeholder-session.jpg" />
-                        <div class="form-text">Leave blank to use the default placeholder image.</div>
-                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+
+                        <!-- Drag and drop zone -->
+                        <div style="border:2px dashed #BDE8F5; border-radius:12px;
+                                    padding:1.5rem; text-align:center; background:#f8faff;
+                                    transition: border-color 0.3s ease;"
+                             id="dropZoneCreate"
+                             ondragover="event.preventDefault(); this.style.borderColor='#4988C4';"
+                             ondragleave="this.style.borderColor='#BDE8F5';"
+                             ondrop="handleDrop(event, 'ImageFile', 'previewCreate', 'dropZoneCreate')">
+                            <i class="fas fa-cloud-arrow-up fa-2x mb-2"
+                               style="color:#4988C4;"></i>
+                            <p class="mb-1" style="font-size:0.88rem; color:#64748b;">
+                                Drag &amp; drop an image here, or
+                                <label for="ImageFile"
+                                       style="color:#1C4D8D; font-weight:600;
+                                              cursor:pointer; text-decoration:underline;">
+                                    browse
+                                </label>
+                            </p>
+                            <p class="mb-0" style="font-size:0.78rem; color:#94a3b8;">
+                                JPG, PNG, GIF, WEBP &mdash; max 5 MB
+                            </p>
+                            <input asp-for="ImageFile"
+                                   type="file"
+                                   id="ImageFile"
+                                   accept="image/*"
+                                   class="d-none"
+                                   onchange="previewImage(this, 'previewCreate')" />
+                        </div>
+
+                        <!-- Image preview shown after selection -->
+                        <div id="previewCreate" class="mt-3 d-none">
+                            <p class="form-label mb-2">
+                                <i class="fas fa-eye" style="color:#4988C4;"></i> Preview
+                            </p>
+                            <img id="previewCreateImg"
+                                 src="#" alt="Preview"
+                                 style="height:120px; width:auto; border-radius:10px;
+                                        border:2px solid #BDE8F5;" />
+                            <button type="button"
+                                    class="btn-action btn-action-delete ms-3"
+                                    onclick="clearImage('ImageFile', 'previewCreate')">
+                                <i class="fas fa-xmark"></i> Remove
+                            </button>
+                        </div>
+
+                        <span asp-validation-for="ImageFile" class="text-danger"></span>
                     </div>
 
                     <!-- Action Buttons -->
@@ -131,4 +177,34 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        function previewImage(input, previewId) {
+            const previewContainer = document.getElementById(previewId);
+            const previewImg = document.getElementById(previewId + 'Img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg.src = e.target.result;
+                    previewContainer.classList.remove('d-none');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearImage(inputId, previewId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(previewId).classList.add('d-none');
+        }
+
+        function handleDrop(event, inputId, previewId, dropZoneId) {
+            event.preventDefault();
+            document.getElementById(dropZoneId).style.borderColor = '#BDE8F5';
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const input = document.getElementById(inputId);
+                input.files = files;
+                previewImage(input, previewId);
+            }
+        }
+    </script>
 }

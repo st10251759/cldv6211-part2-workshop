@@ -2,10 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using MediBook.Data;
 using MediBook.Models;
+using MediBook.Services;
 
 /*
 ==============================Code Attribution==================================
-ASP.NET MVC Controllers
+ASP.NET MVC Controllers with Azure Blob Storage
 Author: Microsoft
 Link: https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions
 Date Accessed: 28 April 2026
@@ -15,13 +16,16 @@ Date Accessed: 28 April 2026
 namespace MediBook.Controllers
 {
     // Handles all CRUD operations for MedicalSession records.
+    // Image uploads are handled via BlobService, which stores images in Azurite.
     public class MedicalSessionsController : Controller
     {
         private readonly MediBookDbContext _context;
+        private readonly BlobService _blobService;
 
-        public MedicalSessionsController(MediBookDbContext context)
+        public MedicalSessionsController(MediBookDbContext context, BlobService blobService)
         {
             _context = context;
+            _blobService = blobService;
         }
 
         // GET: MedicalSessions — retrieves and displays all medical sessions
@@ -49,23 +53,54 @@ namespace MediBook.Controllers
             return View();
         }
 
-        // POST: MedicalSessions/Create — saves the new session to the database
+        // POST: MedicalSessions/Create — uploads image to Azurite, saves session to database
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SessionId,Name,Description,StartDate,EndDate,ImageUrl")] MedicalSession session)
+        public async Task<IActionResult> Create(
+            [Bind("SessionId,Name,Description,StartDate,EndDate,ImageFile")] MedicalSession session)
         {
-            // Validates that StartDate is before EndDate
+            // Validate that StartDate is before EndDate
             if (session.StartDate >= session.EndDate)
-            {
                 ModelState.AddModelError("EndDate", "End date must be after the start date.");
-            }
+
+            // Remove ImageUrl from validation — it is set programmatically after upload
+            ModelState.Remove("ImageUrl");
 
             if (ModelState.IsValid)
             {
-                _context.Add(session);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    if (session.ImageFile != null && session.ImageFile.Length > 0)
+                    {
+                        // Upload image to Azurite and store the returned blob URL
+                        session.ImageUrl = await _blobService.UploadImageAsync(session.ImageFile);
+                    }
+                    else
+                    {
+                        // Fall back to the default placeholder if no file was uploaded
+                        session.ImageUrl = "/images/placeholder-session.jpg";
+                    }
+
+                    _context.Add(session);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] =
+                        $"Medical session '{session.Name}' was added successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (ArgumentException ex)
+                {
+                    // Validation errors from BlobService (file type, size, etc.)
+                    ModelState.AddModelError("ImageFile", ex.Message);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Azurite connection or upload errors
+                    ModelState.AddModelError("",
+                        $"Image upload failed: {ex.Message}");
+                }
             }
+
             return View(session);
         }
 
@@ -81,33 +116,69 @@ namespace MediBook.Controllers
             return View(session);
         }
 
-        // POST: MedicalSessions/Edit/5 — updates the session record in the database
+        // POST: MedicalSessions/Edit/5 — uploads new image if provided, updates session record
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SessionId,Name,Description,StartDate,EndDate,ImageUrl")] MedicalSession session)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("SessionId,Name,Description,StartDate,EndDate,ImageUrl,ImageFile")] MedicalSession session)
         {
             if (id != session.SessionId) return NotFound();
 
-            // Validates that StartDate is before EndDate
+            // Validate that StartDate is before EndDate
             if (session.StartDate >= session.EndDate)
-            {
                 ModelState.AddModelError("EndDate", "End date must be after the start date.");
-            }
+
+            // Remove ImageUrl from validation — it is managed by the controller
+            ModelState.Remove("ImageUrl");
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    if (session.ImageFile != null && session.ImageFile.Length > 0)
+                    {
+                        // Delete the old blob from Azurite if it was a previously uploaded image
+                        var existing = await _context.MedicalSessions
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(s => s.SessionId == id);
+
+                        if (existing?.ImageUrl != null &&
+                            existing.ImageUrl.StartsWith("http://127.0.0.1"))
+                        {
+                            await _blobService.DeleteImageAsync(existing.ImageUrl);
+                        }
+
+                        // Upload the new image and update the URL
+                        session.ImageUrl = await _blobService.UploadImageAsync(session.ImageFile);
+                    }
+                    // If no new file uploaded, ImageUrl is posted back from the hidden field
+                    // and keeps its existing value — no change needed
+
                     _context.Update(session);
                     await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] =
+                        $"Medical session '{session.Name}' was updated successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (ArgumentException ex)
+                {
+                    // Validation errors from BlobService (file type, size, etc.)
+                    ModelState.AddModelError("ImageFile", ex.Message);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Azurite connection or upload errors
+                    ModelState.AddModelError("",
+                        $"Image upload failed: {ex.Message}");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!SessionExists(session.SessionId)) return NotFound();
                     else throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
+
             return View(session);
         }
 
@@ -117,6 +188,7 @@ namespace MediBook.Controllers
             if (id == null) return NotFound();
 
             var session = await _context.MedicalSessions
+                .Include(s => s.Reservations)
                 .FirstOrDefaultAsync(s => s.SessionId == id);
 
             if (session == null) return NotFound();
@@ -124,17 +196,39 @@ namespace MediBook.Controllers
             return View(session);
         }
 
-        // POST: MedicalSessions/Delete/5 — removes the session from the database
+        // POST: MedicalSessions/Delete/5 — blocks deletion if active reservations exist
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var session = await _context.MedicalSessions.FindAsync(id);
-            if (session != null)
+            var session = await _context.MedicalSessions
+                .Include(s => s.Reservations)
+                .FirstOrDefaultAsync(s => s.SessionId == id);
+
+            if (session == null) return NotFound();
+
+            // VALIDATION: Block deletion if active reservations are linked to this session
+            if (session.Reservations.Any())
             {
-                _context.MedicalSessions.Remove(session);
-                await _context.SaveChangesAsync();
+                TempData["ErrorMessage"] =
+                    $"Cannot delete '{session.Name}' — it has " +
+                    $"{session.Reservations.Count} active reservation(s). " +
+                    "Please remove all linked reservations before deleting this session.";
+                return RedirectToAction(nameof(Index));
             }
+
+            // Delete the blob image from Azurite if it was uploaded there
+            if (session.ImageUrl != null &&
+                session.ImageUrl.StartsWith("http://127.0.0.1"))
+            {
+                await _blobService.DeleteImageAsync(session.ImageUrl);
+            }
+
+            _context.MedicalSessions.Remove(session);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] =
+                $"Medical session '{session.Name}' was deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
