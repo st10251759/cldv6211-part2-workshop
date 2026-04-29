@@ -4,25 +4,146 @@
     ViewData["Title"] = "Session Details";
 }
 
-<h2>Session Details</h2>
-
-<div>
-    <img src="@Model.ImageUrl" alt="Session Image" width="200" />
-    <hr />
-    <dl>
-        <dt>@Html.DisplayNameFor(m => m.Name)</dt>
-        <dd>@Html.DisplayFor(m => m.Name)</dd>
-
-        <dt>@Html.DisplayNameFor(m => m.Description)</dt>
-        <dd>@Html.DisplayFor(m => m.Description)</dd>
-
-        <dt>@Html.DisplayNameFor(m => m.StartDate)</dt>
-        <dd>@Html.DisplayFor(m => m.StartDate)</dd>
-
-        <dt>@Html.DisplayNameFor(m => m.EndDate)</dt>
-        <dd>@Html.DisplayFor(m => m.EndDate)</dd>
-    </dl>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-circle-info"></i>
+        </div>
+        <h1>Session Details</h1>
+        <p>Full information for this medical session</p>
+    </div>
 </div>
 
-<a asp-action="Edit" asp-route-id="@Model.SessionId">Edit</a> |
-<a asp-action="Index">Back to List</a>
+<div class="container section-padding">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb medibook-breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Medical Sessions</a>
+                    </li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </nav>
+
+            <div class="detail-card">
+
+                <!-- Card Header -->
+                <div class="detail-card-header">
+                    <i class="fas fa-stethoscope"></i>
+                    <div>
+                        <h4>@Model.Name</h4>
+                        <span style="color:rgba(255,255,255,0.65); font-size:0.85rem;">
+                            Session ID: #@Model.SessionId
+                        </span>
+                    </div>
+                </div>
+
+                <div class="detail-card-body">
+                    <div class="row g-4">
+
+                        <!-- Left: Image -->
+                        <div class="col-md-4 text-center">
+                            <img src="@(Model.ImageUrl ?? "/images/placeholder-session.jpg")"
+                                 alt="@Model.Name"
+                                 class="detail-image"
+                                 onerror="this.src='/images/placeholder-session.jpg'" />
+                            <!-- Duration Badge -->
+                            @{
+                                var duration = Model.EndDate - Model.StartDate;
+                                string durationText = duration.TotalDays >= 1
+                                ? $"{(int)duration.TotalDays}d {duration.Hours}h"
+                                : $"{duration.Hours}h {duration.Minutes}m";
+                            }
+                            <div style="background:linear-gradient(135deg,#0F2854,#1C4D8D);
+                                        color:#fff; border-radius:10px; padding:10px 16px;
+                                        font-size:0.85rem; margin-top:0.5rem;">
+                                <i class="fas fa-clock me-1" style="color:#BDE8F5;"></i>
+                                <strong>Duration:</strong> @durationText
+                            </div>
+                        </div>
+
+                        <!-- Right: Fields -->
+                        <div class="col-md-8">
+
+                            <div class="detail-field">
+                                <span class="detail-field-label">
+                                    <i class="fas fa-tag"></i> Session Name
+                                </span>
+                                <span class="detail-field-value">@Model.Name</span>
+                            </div>
+
+                            <div class="detail-field">
+                                <span class="detail-field-label">
+                                    <i class="fas fa-align-left"></i> Description
+                                </span>
+                                <span class="detail-field-value">
+                                    @(string.IsNullOrEmpty(Model.Description)
+                                                                        ? "No description provided."
+                                                                        : Model.Description)
+                                </span>
+                            </div>
+
+                            <div class="detail-field">
+                                <span class="detail-field-label">
+                                    <i class="fas fa-calendar-day"></i> Start Date & Time
+                                </span>
+                                <span class="detail-field-value">
+                                    @Model.StartDate.ToString("dddd, dd MMMM yyyy — HH:mm")
+                                </span>
+                            </div>
+
+                            <div class="detail-field">
+                                <span class="detail-field-label">
+                                    <i class="fas fa-calendar-check"></i> End Date & Time
+                                </span>
+                                <span class="detail-field-value">
+                                    @Model.EndDate.ToString("dddd, dd MMMM yyyy — HH:mm")
+                                </span>
+                            </div>
+
+                            <div class="detail-field">
+                                <span class="detail-field-label">
+                                    <i class="fas fa-image"></i> Image URL
+                                </span>
+                                <span class="detail-field-value"
+                                      style="font-size:0.85rem; color:#64748b; word-break:break-all;">
+                                    @(string.IsNullOrEmpty(Model.ImageUrl)
+                                                                        ? "Using default placeholder"
+                                                                        : Model.ImageUrl)
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-4 mt-3 flex-wrap"
+                         style="border-top:1px solid #f1f5f9;">
+                        <a asp-action="Edit" asp-route-id="@Model.SessionId"
+                           class="btn-medibook-primary">
+                            <i class="fas fa-pen"></i> Edit Session
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.SessionId"
+                           class="btn-action btn-action-delete"
+                           style="padding:10px 22px; font-size:0.9rem; border-radius:50px;">
+                            <i class="fas fa-trash"></i> Delete Session
+                        </a>
+                        <a asp-action="Index" class="btn-medibook-outline">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

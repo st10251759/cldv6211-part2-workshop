@@ -4,37 +4,130 @@
     ViewData["Title"] = "Reservations";
 }
 
-<h2>Reservations</h2>
-<p>
-    <a asp-action="Create">Add New Reservation</a>
-</p>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <h1>Reservations</h1>
+        <p>Manage and view all facility reservations</p>
+    </div>
+</div>
 
-<table>
-    <thead>
-        <tr>
-            <th>Reservation ID</th>
-            <th>Facility</th>
-            <th>Medical Session</th>
-            <th>@Html.DisplayNameFor(m => m.StartDate)</th>
-            <th>@Html.DisplayNameFor(m => m.EndDate)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.ReservationId)</td>
-                <td>@item.Facility?.Name</td>
-                <td>@item.MedicalSession?.Name</td>
-                <td>@Html.DisplayFor(modelItem => item.StartDate)</td>
-                <td>@Html.DisplayFor(modelItem => item.EndDate)</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.ReservationId">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.ReservationId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ReservationId">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<!-- Main Content -->
+<div class="container section-padding">
+
+    <!-- Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <span class="text-secondary" style="font-size:0.9rem;">
+                <i class="fas fa-list me-1" style="color:#4988C4;"></i>
+                @Model.Count() reservation(s) found
+            </span>
+        </div>
+        <a asp-action="Create" class="btn-action-create">
+            <i class="fas fa-plus"></i> Add New Reservation
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table medibook-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag me-1"></i> Res. ID</th>
+                        <th><i class="fas fa-hospital me-1"></i> Facility</th>
+                        <th><i class="fas fa-stethoscope me-1"></i> Medical Session</th>
+                        <th><i class="fas fa-calendar-day me-1"></i> Start Date</th>
+                        <th><i class="fas fa-calendar-check me-1"></i> End Date</th>
+                        <th><i class="fas fa-clock me-1"></i> Duration</th>
+                        <th style="text-align:center;"><i class="fas fa-sliders me-1"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var duration = item.EndDate - item.StartDate;
+                        var durationText = duration.TotalDays >= 1
+                        ? $"{(int)duration.TotalDays}d {duration.Hours}h"
+                        : $"{duration.Hours}h {duration.Minutes}m";
+
+                        <tr>
+                            <td>
+                                <span style="background:linear-gradient(135deg,#0F2854,#1C4D8D);
+                                                     color:#BDE8F5; padding:4px 10px; border-radius:20px;
+                                                     font-size:0.8rem; font-weight:700;">
+                                    #@item.ReservationId
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight:600; color:#0F2854; font-size:0.9rem;">
+                                    <i class="fas fa-hospital me-1" style="color:#4988C4;"></i>
+                                    @(item.Facility?.Name ?? "—")
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight:500; color:#334155; font-size:0.88rem;">
+                                    <i class="fas fa-stethoscope me-1" style="color:#4988C4;"></i>
+                                    @(item.MedicalSession?.Name.Length > 35
+                                                                ? item.MedicalSession.Name.Substring(0, 35) + "..."
+                                                                : item.MedicalSession?.Name ?? "—")
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge-capacity">
+                            @item.StartDate.ToString("dd MMM yyyy")
+                        </span>
+                        <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">
+                            @item.StartDate.ToString("HH:mm")
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge-capacity">
+                            @item.EndDate.ToString("dd MMM yyyy")
+                        </span>
+                        <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">
+                            @item.EndDate.ToString("HH:mm")
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-size:0.85rem; color:#4988C4; font-weight:600;">
+                            <i class="fas fa-hourglass-half me-1"></i>@durationText
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                            <a asp-action="Details" asp-route-id="@item.ReservationId"
+                               class="btn-action btn-action-details">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.ReservationId"
+                               class="btn-action btn-action-edit">
+                                <i class="fas fa-pen"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.ReservationId"
+                               class="btn-action btn-action-delete">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-calendar-xmark"></i>
+            <h5>No Reservations Found</h5>
+            <p>No reservations have been made yet. Get started by creating the first reservation.</p>
+            <a asp-action="Create" class="btn-action-create mt-2">
+                <i class="fas fa-plus"></i> Create First Reservation
+            </a>
+        </div>
+    }
+</div>

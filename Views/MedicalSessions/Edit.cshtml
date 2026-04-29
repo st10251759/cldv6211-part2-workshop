@@ -4,47 +4,138 @@
     ViewData["Title"] = "Edit Medical Session";
 }
 
-<h2>Edit Medical Session</h2>
-
-<form asp-action="Edit">
-    <div asp-validation-summary="ModelOnly"></div>
-    <input type="hidden" asp-for="SessionId" />
-
-    <div>
-        <label asp-for="Name"></label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-pen-to-square"></i>
+        </div>
+        <h1>Edit Medical Session</h1>
+        <p>Update the details for this medical session</p>
     </div>
+</div>
 
-    <div>
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description"></textarea>
-        <span asp-validation-for="Description"></span>
-    </div>
+<!-- Form Content -->
+<div class="container section-padding">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-    <div>
-        <label asp-for="StartDate"></label>
-        <input asp-for="StartDate" type="datetime-local" />
-        <span asp-validation-for="StartDate"></span>
-    </div>
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb medibook-breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Medical Sessions</a>
+                    </li>
+                    <li class="breadcrumb-item active">Edit</li>
+                </ol>
+            </nav>
 
-    <div>
-        <label asp-for="EndDate"></label>
-        <input asp-for="EndDate" type="datetime-local" />
-        <span asp-validation-for="EndDate"></span>
-    </div>
+            <div class="medibook-form-card">
 
-    <div>
-        <label asp-for="ImageUrl"></label>
-        <input asp-for="ImageUrl" />
-        <span asp-validation-for="ImageUrl"></span>
-    </div>
+                <!-- Card Header -->
+                <div class="detail-card-header" style="border-radius:12px 12px 0 0; margin:-2.5rem -2.5rem 2rem -2.5rem; padding:1.5rem 2rem;">
+                    <i class="fas fa-pen"></i>
+                    <h4>Edit — @Model.Name</h4>
+                </div>
 
-    <div>
-        <input type="submit" value="Save Changes" />
-        <a asp-action="Index">Back to List</a>
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger d-flex align-items-center gap-2 mb-4"
+                         style="border-radius:10px; font-size:0.88rem;">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <div></div>
+                    </div>
+
+                    <input type="hidden" asp-for="SessionId" />
+
+                    <!-- Session Name -->
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label">
+                            <i class="fas fa-tag"></i> Session Name
+                        </label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label">
+                            <i class="fas fa-align-left"></i> Description
+                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
+                        </label>
+                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        <div class="form-text">Maximum 300 characters.</div>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <!-- Date Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label">
+                                <i class="fas fa-calendar-day"></i> Start Date & Time
+                            </label>
+                            <input asp-for="StartDate" class="form-control" type="datetime-local" />
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label">
+                                <i class="fas fa-calendar-check"></i> End Date & Time
+                            </label>
+                            <input asp-for="EndDate" class="form-control" type="datetime-local" />
+                            <span asp-validation-for="EndDate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Image URL -->
+                    <div class="mb-4">
+                        <label asp-for="ImageUrl" class="form-label">
+                            <i class="fas fa-image"></i> Image URL
+                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
+                        </label>
+                        <input asp-for="ImageUrl" class="form-control" />
+                        <div class="form-text">Leave blank to use the default placeholder image.</div>
+                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    </div>
+
+                    <!-- Current Image Preview -->
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <div class="mb-4 p-3"
+                             style="background:#f8faff; border-radius:10px; border:1px solid #e2e8f0;">
+                            <p class="form-label mb-2">
+                                <i class="fas fa-eye" style="color:#4988C4;"></i> Current Image Preview
+                            </p>
+                            <img src="@Model.ImageUrl"
+                                 alt="Current Session Image"
+                                 style="height:120px; width:auto; border-radius:8px; border:2px solid #BDE8F5;"
+                                 onerror="this.src='/images/placeholder-session.jpg'" />
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-2 flex-wrap">
+                        <button type="submit" class="btn-medibook-primary">
+                            <i class="fas fa-floppy-disk"></i> Save Changes
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.SessionId"
+                           class="btn-medibook-outline">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-action="Index" class="btn-medibook-outline">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
     </div>
-</form>
+</div>
 
 @section Scripts {
     @{

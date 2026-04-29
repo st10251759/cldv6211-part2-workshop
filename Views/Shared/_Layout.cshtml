@@ -5,48 +5,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MediBook</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MediBook.styles.css" asp-append-version="true" />
 </head>
 <body>
+
+    <!-- ── Navbar ── -->
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MediBook</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+        <nav class="medibook-navbar navbar navbar-expand-lg">
+            <div class="container">
+                <!-- Brand / Logo -->
+                <a class="navbar-brand navbar-brand-wrapper" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="MediBook Logo" class="navbar-logo"
+                         onerror="this.style.display='none'" />
+                    <span class="navbar-brand-text">Medi<span>Book</span></span>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#mainNav" aria-controls="mainNav"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <!-- Nav Links -->
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-house me-1"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Facilities" asp-action="Index">Facilities</a>
+                            <a class="nav-link" asp-controller="MedicalSessions" asp-action="Index">
+                                <i class="fas fa-stethoscope me-1"></i> Medical Sessions
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="MedicalSessions" asp-action="Index">Medical Sessions</a>
+                            <a class="nav-link" asp-controller="Facilities" asp-action="Index">
+                                <i class="fas fa-hospital me-1"></i> Facilities
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Reservations" asp-action="Index">Reservations</a>
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn-medibook-light px-4 py-2 nav-link"
+                               style="border-radius:50px;font-weight:600;font-size:0.88rem;color: #1C4D8D !important;border: 3px solid #1C4D8D !important;padding: 0.8rem 1rem !important;"
+                               asp-controller="Reservations" asp-action="Index">
+                                <i class="fas fa-calendar-check me-1"></i> Reservations
+                            </a>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <!-- ── Page Content ── -->
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="medibook-footer">
         <div class="container">
-            &copy; 2026 - MediBook - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row g-4 pb-4">
+
+                <!-- Brand Column -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">Medi<span>Book</span></div>
+                    <p class="footer-desc">
+                        A professional hospital resource booking platform built to streamline
+                        clinical facility reservations and medical session scheduling.
+                    </p>
+                    <div class="footer-social mt-3">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="footer-heading">Quick Links</h6>
+                    <ul class="footer-links">
+                        <li>
+                            <a asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-chevron-right fa-xs"></i> Home
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="MedicalSessions" asp-action="Index">
+                                <i class="fas fa-chevron-right fa-xs"></i> Medical Sessions
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Facilities" asp-action="Index">
+                                <i class="fas fa-chevron-right fa-xs"></i> Facilities
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Reservations" asp-action="Index">
+                                <i class="fas fa-chevron-right fa-xs"></i> Reservations
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Services -->
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="footer-heading">Services</h6>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right fa-xs"></i> Room Booking</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right fa-xs"></i> Session Planning</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right fa-xs"></i> Scheduling</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right fa-xs"></i> Resource Mgmt</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div class="col-lg-4 col-md-6">
+                    <h6 class="footer-heading">Contact Us</h6>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-location-dot"></i>
+                        <span>123 Medical Drive, Healthcare District, Durban, 4001</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>+27 31 000 1234</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>info@medibook.co.za</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Mon – Fri: 07:00 – 18:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                <p>&copy; 2026 MediBook. All rights reserved.</p>
+                <p>Built with <i class="fas fa-heart" style="color:#BDE8F5; font-size:0.75rem;"></i> for healthcare professionals.</p>
+            </div>
         </div>
     </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" onclick="scrollToTop()" aria-label="Scroll to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

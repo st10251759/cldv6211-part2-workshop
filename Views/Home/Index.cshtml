@@ -1,8 +1,451 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
+    var facilities = ViewBag.Facilities as List<MediBook.Models.Facility> ?? new List<MediBook.Models.Facility>();
+    var sessions = ViewBag.Sessions as List<MediBook.Models.MedicalSession> ?? new List<MediBook.Models.MedicalSession>();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- ══════════════════════════════════════════
+     HERO CAROUSEL
+══════════════════════════════════════════ -->
+<section class="hero-carousel">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+        </div>
+
+        <div class="carousel-inner">
+
+            <!-- Slide 1 -->
+            <div class="carousel-item active">
+                <img src="~/images/hero-1.jpg" alt="Modern Hospital Facility" />
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <p class="hero-tagline"><i class="fas fa-circle-dot me-2"></i>Advanced Healthcare Management</p>
+                    <h1 class="hero-title">Streamlining Medical<br>Facility Reservations</h1>
+                    <p class="hero-subtitle">
+                        MediBook empowers clinical coordinators to manage facility bookings,
+                        schedule medical sessions, and eliminate scheduling conflicts — all in one place.
+                    </p>
+                    <div class="hero-btns">
+                        <a asp-controller="Reservations" asp-action="Create" class="btn-medibook-primary">
+                            <i class="fas fa-calendar-plus"></i> Book a Facility
+                        </a>
+                        <a asp-controller="Facilities" asp-action="Index" class="btn-medibook-light">
+                            <i class="fas fa-hospital"></i> View Facilities
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="carousel-item">
+                <img src="~/images/hero-2.jpg" alt="Medical Team" />
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <p class="hero-tagline"><i class="fas fa-circle-dot me-2"></i>Collaborative Healthcare</p>
+                    <h1 class="hero-title">Coordinating Care<br>Across Every Department</h1>
+                    <p class="hero-subtitle">
+                        From operating theatres to consultation rooms, MediBook ensures
+                        every space is scheduled efficiently and conflict-free.
+                    </p>
+                    <div class="hero-btns">
+                        <a asp-controller="MedicalSessions" asp-action="Index" class="btn-medibook-primary">
+                            <i class="fas fa-stethoscope"></i> View Sessions
+                        </a>
+                        <a asp-controller="Reservations" asp-action="Index" class="btn-medibook-light">
+                            <i class="fas fa-list-check"></i> All Reservations
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="carousel-item">
+                <img src="~/images/hero-3.jpg" alt="Doctor Consulting" />
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <p class="hero-tagline"><i class="fas fa-circle-dot me-2"></i>Precision Scheduling</p>
+                    <h1 class="hero-title">The Right Space, at<br>The Right Time</h1>
+                    <p class="hero-subtitle">
+                        Prevent double bookings, manage capacity, and keep your
+                        clinical operations running smoothly with MediBook.
+                    </p>
+                    <div class="hero-btns">
+                        <a asp-controller="Reservations" asp-action="Create" class="btn-medibook-primary">
+                            <i class="fas fa-plus-circle"></i> New Reservation
+                        </a>
+                        <a href="#about" class="btn-medibook-light">
+                            <i class="fas fa-info-circle"></i> Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABOUT SECTION
+══════════════════════════════════════════ -->
+<section id="about" class="about-section section-padding">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <!-- Image -->
+            <div class="col-lg-5 fade-in-up">
+                <div class="about-image-wrapper">
+                    <img src="~/images/about.jpg" alt="MediBook Facility" />
+                    <div class="about-badge">
+                        <div class="about-badge-number">10+</div>
+                        <div class="about-badge-text">Years of Healthcare Excellence</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="col-lg-7 fade-in-up">
+                <p class="section-subtitle"><i class="fas fa-hospital-user me-2"></i>About MediBook</p>
+                <h2 class="section-title">A Smarter Way to Manage<br>Medical Resources</h2>
+                <div class="section-divider left"></div>
+                <p class="text-secondary mb-4" style="font-size:0.97rem; line-height:1.8;">
+                    MediBook is a professional hospital resource management platform designed for
+                    clinical administrators and coordinators. Our system simplifies the process of
+                    reserving clinical spaces, scheduling medical sessions, and preventing costly
+                    double bookings across departments.
+                </p>
+
+                <div class="about-features">
+                    <div class="about-feature-item fade-in-up">
+                        <div class="about-feature-icon">
+                            <i class="fas fa-shield-halved"></i>
+                        </div>
+                        <div class="about-feature-text">
+                            <strong>Conflict-Free Booking</strong>
+                            <span>Intelligent validation prevents double bookings and scheduling overlaps.</span>
+                        </div>
+                    </div>
+                    <div class="about-feature-item fade-in-up">
+                        <div class="about-feature-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="about-feature-text">
+                            <strong>Real-Time Scheduling</strong>
+                            <span>View and manage all reservations with up-to-date availability data.</span>
+                        </div>
+                    </div>
+                    <div class="about-feature-item fade-in-up">
+                        <div class="about-feature-icon">
+                            <i class="fas fa-users-gear"></i>
+                        </div>
+                        <div class="about-feature-text">
+                            <strong>Multi-Department Support</strong>
+                            <span>Manage operating theatres, consultation rooms, wards, and more.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a asp-controller="Reservations" asp-action="Create" class="btn-medibook-primary me-3">
+                        <i class="fas fa-calendar-plus"></i> Make a Reservation
+                    </a>
+                    <a asp-controller="Facilities" asp-action="Index" class="btn-medibook-outline">
+                        <i class="fas fa-arrow-right"></i> Our Facilities
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     MEDICAL SESSIONS SECTION
+══════════════════════════════════════════ -->
+<section id="sessions" class="cards-section section-padding">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-lg-7 fade-in-up">
+                <p class="section-subtitle"><i class="fas fa-stethoscope me-2"></i>Medical Sessions</p>
+                <h2 class="section-title">Available Medical Sessions</h2>
+                <div class="section-divider left"></div>
+                <p class="text-secondary" style="font-size:0.95rem;">
+                    Browse all registered medical sessions available for facility reservation.
+                    Each session can be linked to a clinical space through our booking system.
+                </p>
+            </div>
+            <div class="col-lg-5 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0 fade-in-up">
+                <a asp-controller="MedicalSessions" asp-action="Index" class="btn-medibook-primary">
+                    <i class="fas fa-list"></i> View All Sessions
+                </a>
+            </div>
+        </div>
+
+        @if (sessions.Any())
+        {
+            <!-- Card Carousel -->
+            <div class="card-carousel-wrapper">
+                <div class="card-carousel-track" id="sessionsTrack">
+                    @foreach (var session in sessions)
+                    {
+                        <div class="card-carousel-item">
+                            <div class="medibook-card fade-in-up">
+                                <div class="medibook-card-img-wrapper">
+                                    <img src="@(session.ImageUrl ?? "/images/placeholder-session.jpg")"
+                                         alt="@session.Name"
+                                         onerror="this.src='/images/placeholder-session.jpg'" />
+                                    <span class="card-tag"><i class="fas fa-stethoscope me-1"></i>Session</span>
+                                </div>
+                                <div class="medibook-card-body">
+                                    <h5 class="medibook-card-title">@session.Name</h5>
+                                    <p class="medibook-card-text">
+                                        @(string.IsNullOrEmpty(session.Description) ? "No description provided." :
+                                                                        (session.Description.Length > 90 ? session.Description.Substring(0, 90) + "..." : session.Description))
+                            </p>
+                            <div class="medibook-card-meta">
+                                <span class="card-meta-item">
+                                    <i class="fas fa-calendar-day"></i>
+                                    @session.StartDate.ToString("dd MMM yyyy")
+                                </span>
+                                <span class="card-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    @session.EndDate.ToString("dd MMM yyyy")
+                                </span>
+                            </div>
+                            <div class="medibook-card-footer-actions">
+                                <a asp-controller="MedicalSessions" asp-action="Details"
+                                   asp-route-id="@session.SessionId"
+                                   class="btn-action btn-action-details">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
+                                <a asp-controller="MedicalSessions" asp-action="Edit"
+                                   asp-route-id="@session.SessionId"
+                                   class="btn-action btn-action-edit">
+                                    <i class="fas fa-pen"></i> Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                }
+                </div>
+            </div>
+
+            <div class="carousel-nav">
+                <button class="carousel-nav-btn carousel-prev" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-dots"></div>
+                <button class="carousel-nav-btn carousel-next" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state fade-in-up">
+                <i class="fas fa-stethoscope"></i>
+                <h5>No Sessions Yet</h5>
+                <p>Medical sessions will appear here once added to the system.</p>
+                <a asp-controller="MedicalSessions" asp-action="Create" class="btn-medibook-primary mt-2">
+                    <i class="fas fa-plus"></i> Add First Session
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FACILITIES SECTION
+══════════════════════════════════════════ -->
+<section id="facilities" class="cards-section alt section-padding">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-lg-7 fade-in-up">
+                <p class="section-subtitle"><i class="fas fa-hospital me-2"></i>Our Facilities</p>
+                <h2 class="section-title">Clinical Spaces & Facilities</h2>
+                <div class="section-divider left"></div>
+                <p class="text-secondary" style="font-size:0.95rem;">
+                    Explore our range of clinical spaces available for reservation.
+                    Each facility is managed to ensure maximum availability and optimal patient care.
+                </p>
+            </div>
+            <div class="col-lg-5 d-flex align-items-center justify-content-lg-end mt-3 mt-lg-0 fade-in-up">
+                <a asp-controller="Facilities" asp-action="Index" class="btn-medibook-primary">
+                    <i class="fas fa-list"></i> View All Facilities
+                </a>
+            </div>
+        </div>
+
+        @if (facilities.Any())
+        {
+            <div class="card-carousel-wrapper">
+                <div class="card-carousel-track" id="facilitiesTrack">
+                    @foreach (var facility in facilities)
+                    {
+                        <div class="card-carousel-item">
+                            <div class="medibook-card fade-in-up">
+                                <div class="medibook-card-img-wrapper">
+                                    <img src="@(facility.ImageUrl ?? "/images/placeholder-facility.jpg")"
+                                         alt="@facility.Name"
+                                         onerror="this.src='/images/placeholder-facility.jpg'" />
+                                    <span class="card-tag"><i class="fas fa-hospital me-1"></i>Facility</span>
+                                </div>
+                                <div class="medibook-card-body">
+                                    <h5 class="medibook-card-title">@facility.Name</h5>
+                                    <p class="medibook-card-text">
+                                        @(string.IsNullOrEmpty(facility.Description) ? "No description provided." :
+                                                                        (facility.Description.Length > 90 ? facility.Description.Substring(0, 90) + "..." : facility.Description))
+                            </p>
+                            <div class="medibook-card-meta">
+                                <span class="card-meta-item">
+                                    <i class="fas fa-location-dot"></i>
+                                    @(facility.Location.Length > 25 ? facility.Location.Substring(0, 25) + "..." : facility.Location)
+                                </span>
+                                <span class="card-meta-item">
+                                    <i class="fas fa-users"></i>
+                                    Capacity: @facility.Capacity
+                                </span>
+                            </div>
+                            <div class="medibook-card-footer-actions">
+                                <a asp-controller="Facilities" asp-action="Details"
+                                   asp-route-id="@facility.FacilityId"
+                                   class="btn-action btn-action-details">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
+                                <a asp-controller="Reservations" asp-action="Create"
+                                   class="btn-action btn-action-edit">
+                                    <i class="fas fa-calendar-plus"></i> Book
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                }
+                </div>
+            </div>
+
+            <div class="carousel-nav">
+                <button class="carousel-nav-btn carousel-prev" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-dots"></div>
+                <button class="carousel-nav-btn carousel-next" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state fade-in-up">
+                <i class="fas fa-hospital"></i>
+                <h5>No Facilities Yet</h5>
+                <p>Facilities will appear here once added to the system.</p>
+                <a asp-controller="Facilities" asp-action="Create" class="btn-medibook-primary mt-2">
+                    <i class="fas fa-plus"></i> Add First Facility
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     RESERVATION / CONTACT SECTION
+══════════════════════════════════════════ -->
+<section id="reservations" class="reservation-section section-padding">
+    <div class="container">
+
+        <!-- Contact Cards -->
+        <div class="text-center mb-5 fade-in-up">
+            <p class="section-subtitle"><i class="fas fa-calendar-check me-2"></i>Get In Touch</p>
+            <h2 class="section-title">Make a Reservation</h2>
+            <div class="section-divider mx-auto"></div>
+            <p style="color:rgba(255,255,255,0.75); max-width:560px; margin:0 auto; font-size:0.95rem;">
+                Contact our scheduling team or use the booking system directly to reserve
+                a clinical space for your medical session.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-4 fade-in-up">
+                <div class="contact-card">
+                    <div class="contact-card-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-card-title">Email Us</div>
+                    <div class="contact-card-value">
+                        reservations@medibook.co.za<br>
+                        info@medibook.co.za
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 fade-in-up">
+                <div class="contact-card">
+                    <div class="contact-card-icon">
+                        <i class="fas fa-phone-volume"></i>
+                    </div>
+                    <div class="contact-card-title">Call Us</div>
+                    <div class="contact-card-value">
+                        +27 31 000 1234<br>
+                        Mon – Fri: 07:00 – 18:00
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 fade-in-up">
+                <div class="contact-card">
+                    <div class="contact-card-icon">
+                        <i class="fas fa-location-dot"></i>
+                    </div>
+                    <div class="contact-card-title">Visit Us</div>
+                    <div class="contact-card-value">
+                        123 Medical Drive<br>
+                        Healthcare District, Durban, 4001
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image + CTA -->
+        <div class="row align-items-center g-5 mt-2">
+            <div class="col-lg-6 fade-in-up">
+                <div class="reservation-image-wrapper">
+                    <img src="~/images/reservation-bg.jpg" alt="Hospital Reservation"
+                         onerror="this.src='/images/placeholder-facility.jpg'" />
+                </div>
+            </div>
+            <div class="col-lg-6 fade-in-up">
+                <p class="section-subtitle"><i class="fas fa-calendar-plus me-2"></i>Online Booking</p>
+                <h3 class="section-title" style="color:#fff; font-size:1.9rem;">
+                    Ready to Reserve a Clinical Space?
+                </h3>
+                <div class="section-divider left" style="background: linear-gradient(90deg, #BDE8F5, #4988C4);"></div>
+                <p style="color:rgba(255,255,255,0.75); margin-bottom:2rem; font-size:0.95rem; line-height:1.8;">
+                    Use our reservation system to link a medical session to an available facility.
+                    Our system validates availability in real-time to prevent conflicts and ensure
+                    smooth clinical operations.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Reservations" asp-action="Create" class="btn-medibook-light">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </a>
+                    <a asp-controller="Reservations" asp-action="Index" class="btn-medibook-outline"
+                       style="color:#BDE8F5; border-color:#BDE8F5;">
+                        <i class="fas fa-list-check"></i> View Reservations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

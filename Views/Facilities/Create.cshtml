@@ -4,46 +4,136 @@
     ViewData["Title"] = "Add Facility";
 }
 
-<h2>Add Facility</h2>
-
-<form asp-action="Create">
-    <div asp-validation-summary="ModelOnly"></div>
-
-    <div>
-        <label asp-for="Name"></label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-plus-circle"></i>
+        </div>
+        <h1>Add Facility</h1>
+        <p>Register a new clinical facility to the system</p>
     </div>
+</div>
 
-    <div>
-        <label asp-for="Location"></label>
-        <input asp-for="Location" />
-        <span asp-validation-for="Location"></span>
-    </div>
+<!-- Form Content -->
+<div class="container section-padding">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-    <div>
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description"></textarea>
-        <span asp-validation-for="Description"></span>
-    </div>
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb medibook-breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Facilities</a>
+                    </li>
+                    <li class="breadcrumb-item active">Add New</li>
+                </ol>
+            </nav>
 
-    <div>
-        <label asp-for="Capacity"></label>
-        <input asp-for="Capacity" />
-        <span asp-validation-for="Capacity"></span>
-    </div>
+            <div class="medibook-form-card">
 
-    <div>
-        <label asp-for="ImageUrl"></label>
-        <input asp-for="ImageUrl" />
-        <span asp-validation-for="ImageUrl"></span>
-    </div>
+                <!-- Card Header -->
+                <div class="detail-card-header"
+                     style="border-radius:12px 12px 0 0;
+                            margin:-2.5rem -2.5rem 2rem -2.5rem;
+                            padding:1.5rem 2rem;">
+                    <i class="fas fa-hospital"></i>
+                    <h4>Facility Information</h4>
+                </div>
 
-    <div>
-        <input type="submit" value="Save" />
-        <a asp-action="Index">Back to List</a>
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger d-flex align-items-center gap-2 mb-4"
+                         style="border-radius:10px; font-size:0.88rem;">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <div></div>
+                    </div>
+
+                    <!-- Facility Name -->
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label">
+                            <i class="fas fa-tag"></i> Facility Name
+                        </label>
+                        <input asp-for="Name"
+                               class="form-control"
+                               placeholder="e.g. Operating Theatre 1" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="mb-4">
+                        <label asp-for="Location" class="form-label">
+                            <i class="fas fa-location-dot"></i> Location
+                        </label>
+                        <input asp-for="Location"
+                               class="form-control"
+                               placeholder="e.g. Building A, Floor 2, MediBook Central Hospital, Durban" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label">
+                            <i class="fas fa-align-left"></i> Description
+                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
+                        </label>
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Provide a brief description of this facility and its features..."></textarea>
+                        <div class="form-text">Maximum 300 characters.</div>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <!-- Capacity -->
+                    <div class="mb-4">
+                        <label asp-for="Capacity" class="form-label">
+                            <i class="fas fa-users"></i> Capacity
+                        </label>
+                        <input asp-for="Capacity"
+                               class="form-control"
+                               type="number"
+                               min="1"
+                               placeholder="e.g. 12" />
+                        <div class="form-text">
+                            Maximum number of people this facility can accommodate.
+                        </div>
+                        <span asp-validation-for="Capacity" class="text-danger"></span>
+                    </div>
+
+                    <!-- Image URL -->
+                    <div class="mb-4">
+                        <label asp-for="ImageUrl" class="form-label">
+                            <i class="fas fa-image"></i> Image URL
+                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
+                        </label>
+                        <input asp-for="ImageUrl"
+                               class="form-control"
+                               placeholder="/images/placeholder-facility.jpg" />
+                        <div class="form-text">Leave blank to use the default placeholder image.</div>
+                        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-2 flex-wrap">
+                        <button type="submit" class="btn-medibook-primary">
+                            <i class="fas fa-floppy-disk"></i> Save Facility
+                        </button>
+                        <a asp-action="Index" class="btn-medibook-outline">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
     </div>
-</form>
+</div>
 
 @section Scripts {
     @{

@@ -2,26 +2,198 @@
 
 @{
     ViewData["Title"] = "Reservation Details";
+    var duration = Model.EndDate - Model.StartDate;
+    var durationText = duration.TotalDays >= 1
+        ? $"{(int)duration.TotalDays}d {duration.Hours}h {duration.Minutes}m"
+        : $"{duration.Hours}h {duration.Minutes}m";
 }
 
-<h2>Reservation Details</h2>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-circle-info"></i>
+        </div>
+        <h1>Reservation Details</h1>
+        <p>Full information for reservation #@Model.ReservationId</p>
+    </div>
+</div>
 
-<dl>
-    <dt>Reservation ID</dt>
-    <dd>@Html.DisplayFor(m => m.ReservationId)</dd>
+<div class="container section-padding">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
 
-    <dt>Facility</dt>
-    <dd>@Model.Facility?.Name</dd>
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb medibook-breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Reservations</a>
+                    </li>
+                    <li class="breadcrumb-item active">Details</li>
+                </ol>
+            </nav>
 
-    <dt>Medical Session</dt>
-    <dd>@Model.MedicalSession?.Name</dd>
+            <div class="detail-card">
 
-    <dt>@Html.DisplayNameFor(m => m.StartDate)</dt>
-    <dd>@Html.DisplayFor(m => m.StartDate)</dd>
+                <!-- Card Header -->
+                <div class="detail-card-header">
+                    <i class="fas fa-calendar-check"></i>
+                    <div>
+                        <h4>Reservation #@Model.ReservationId</h4>
+                        <span style="color:rgba(255,255,255,0.65); font-size:0.85rem;">
+                            @Model.StartDate.ToString("dd MMM yyyy") —
+                            @Model.EndDate.ToString("dd MMM yyyy")
+                        </span>
+                    </div>
+                </div>
 
-    <dt>@Html.DisplayNameFor(m => m.EndDate)</dt>
-    <dd>@Html.DisplayFor(m => m.EndDate)</dd>
-</dl>
+                <div class="detail-card-body">
 
-<a asp-action="Edit" asp-route-id="@Model.ReservationId">Edit</a> |
-<a asp-action="Index">Back to List</a>
+                    <!-- Summary Info Cards Row -->
+                    <div class="row g-3 mb-4">
+
+                        <!-- Facility Card -->
+                        <div class="col-md-4">
+                            <div class="p-3 h-100"
+                                 style="background:#f0f7ff; border-radius:12px;
+                                        border:1px solid #BDE8F5;">
+                                <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px;
+                                            text-transform:uppercase; color:#4988C4; margin-bottom:8px;">
+                                    <i class="fas fa-hospital me-1"></i> Facility
+                                </div>
+                                <div style="font-weight:700; font-size:1rem; color:#0F2854;">
+                                    @(Model.Facility?.Name ?? "N/A")
+                                </div>
+                                @if (Model.Facility != null)
+                                {
+                                    <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">
+                                        <i class="fas fa-location-dot me-1"></i>
+                                        @(Model.Facility.Location.Length > 40
+                                                                            ? Model.Facility.Location.Substring(0, 40) + "..."
+                                                                            : Model.Facility.Location)
+                                </div>
+                                <div style="font-size:0.8rem; color:#4988C4;
+                                                margin-top:4px; font-weight:600;">
+                                    <i class="fas fa-users me-1"></i>
+                                    Capacity: @Model.Facility.Capacity
+                                </div>
+                                                                }
+                            </div>
+                        </div>
+
+                        <!-- Session Card -->
+                        <div class="col-md-4">
+                            <div class="p-3 h-100"
+                                 style="background:#f0f7ff; border-radius:12px;
+                                        border:1px solid #BDE8F5;">
+                                <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px;
+                                            text-transform:uppercase; color:#4988C4; margin-bottom:8px;">
+                                    <i class="fas fa-stethoscope me-1"></i> Medical Session
+                                </div>
+                                <div style="font-weight:700; font-size:1rem; color:#0F2854;">
+                                    @(Model.MedicalSession?.Name ?? "N/A")
+                                </div>
+                                @if (Model.MedicalSession != null &&
+                                                                !string.IsNullOrEmpty(Model.MedicalSession.Description))
+                                {
+                                    <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">
+                                        @(Model.MedicalSession.Description.Length > 60
+                                                                            ? Model.MedicalSession.Description.Substring(0, 60) + "..."
+                                                                            : Model.MedicalSession.Description)
+                                </div>
+                                                                }
+                            </div>
+                        </div>
+
+                        <!-- Duration Card -->
+                        <div class="col-md-4">
+                            <div class="p-3 h-100"
+                                 style="background:linear-gradient(135deg,#0F2854,#1C4D8D);
+                                        border-radius:12px;">
+                                <div style="font-size:0.75rem; font-weight:700; letter-spacing:1px;
+                                            text-transform:uppercase; color:#BDE8F5; margin-bottom:8px;">
+                                    <i class="fas fa-hourglass-half me-1"></i> Duration
+                                </div>
+                                <div style="font-weight:700; font-size:1.5rem; color:#fff;">
+                                    @durationText
+                                </div>
+                                <div style="font-size:0.78rem; color:rgba(255,255,255,0.6);
+                                            margin-top:4px;">
+                                    Total reservation window
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Fields -->
+                    <div class="detail-field">
+                        <span class="detail-field-label">
+                            <i class="fas fa-hashtag"></i> Reservation ID
+                        </span>
+                        <span class="detail-field-value">#@Model.ReservationId</span>
+                    </div>
+
+                    <div class="detail-field">
+                        <span class="detail-field-label">
+                            <i class="fas fa-hospital"></i> Facility
+                        </span>
+                        <span class="detail-field-value">
+                            @(Model.Facility?.Name ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="detail-field">
+                        <span class="detail-field-label">
+                            <i class="fas fa-stethoscope"></i> Medical Session
+                        </span>
+                        <span class="detail-field-value">
+                            @(Model.MedicalSession?.Name ?? "N/A")
+                        </span>
+                    </div>
+
+                    <div class="detail-field">
+                        <span class="detail-field-label">
+                            <i class="fas fa-calendar-day"></i> Start Date & Time
+                        </span>
+                        <span class="detail-field-value">
+                            @Model.StartDate.ToString("dddd, dd MMMM yyyy — HH:mm")
+                        </span>
+                    </div>
+
+                    <div class="detail-field">
+                        <span class="detail-field-label">
+                            <i class="fas fa-calendar-check"></i> End Date & Time
+                        </span>
+                        <span class="detail-field-value">
+                            @Model.EndDate.ToString("dddd, dd MMMM yyyy — HH:mm")
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-4 mt-3 flex-wrap"
+                         style="border-top:1px solid #f1f5f9;">
+                        <a asp-action="Edit" asp-route-id="@Model.ReservationId"
+                           class="btn-medibook-primary">
+                            <i class="fas fa-pen"></i> Edit Reservation
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.ReservationId"
+                           class="btn-action btn-action-delete"
+                           style="padding:10px 22px; font-size:0.9rem; border-radius:50px;">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                        <a asp-action="Index" class="btn-medibook-outline">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

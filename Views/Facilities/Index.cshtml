@@ -4,37 +4,114 @@
     ViewData["Title"] = "Facilities";
 }
 
-<h2>Facilities</h2>
-<p>
-    <a asp-action="Create">Add New Facility</a>
-</p>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-hospital"></i>
+        </div>
+        <h1>Facilities</h1>
+        <p>Manage and view all registered clinical facilities</p>
+    </div>
+</div>
 
-<table>
-    <thead>
-        <tr>
-            <th>Image</th>
-            <th>@Html.DisplayNameFor(model => model.Name)</th>
-            <th>@Html.DisplayNameFor(model => model.Location)</th>
-            <th>@Html.DisplayNameFor(model => model.Capacity)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    <img src="@item.ImageUrl" alt="Facility Image" width="80" />
-                </td>
-                <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Location)</td>
-                <td>@Html.DisplayFor(modelItem => item.Capacity)</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.FacilityId">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@item.FacilityId">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.FacilityId">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<!-- Main Content -->
+<div class="container section-padding">
+
+    <!-- Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <span class="text-secondary" style="font-size:0.9rem;">
+                <i class="fas fa-list me-1" style="color:#4988C4;"></i>
+                @Model.Count() facility/facilities found
+            </span>
+        </div>
+        <a asp-action="Create" class="btn-action-create">
+            <i class="fas fa-plus"></i> Add New Facility
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table medibook-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-image me-1"></i> Image</th>
+                        <th><i class="fas fa-tag me-1"></i> @Html.DisplayNameFor(m => m.Name)</th>
+                        <th><i class="fas fa-location-dot me-1"></i> @Html.DisplayNameFor(m => m.Location)</th>
+                        <th><i class="fas fa-align-left me-1"></i> Description</th>
+                        <th><i class="fas fa-users me-1"></i> @Html.DisplayNameFor(m => m.Capacity)</th>
+                        <th style="text-align:center;"><i class="fas fa-sliders me-1"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@(item.ImageUrl ?? "/images/placeholder-facility.jpg")"
+                                     alt="@item.Name"
+                                     class="table-img"
+                                     onerror="this.src='/images/placeholder-facility.jpg'" />
+                            </td>
+                            <td>
+                                <span style="font-weight:600; color:#0F2854;">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-size:0.88rem; color:#475569;">
+                                    <i class="fas fa-location-dot me-1" style="color:#4988C4;"></i>
+                                    @(item.Location.Length > 40
+                                                                ? item.Location.Substring(0, 40) + "..."
+                                                                : item.Location)
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span style="color:#64748b; font-size:0.88rem;">
+                                    @(string.IsNullOrEmpty(item.Description) ? "—" :
+                                                                (item.Description.Length > 55
+                                                                ? item.Description.Substring(0, 55) + "..."
+                                                                : item.Description))
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge-capacity">
+                            <i class="fas fa-users me-1"></i>@item.Capacity
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                            <a asp-action="Details" asp-route-id="@item.FacilityId"
+                               class="btn-action btn-action-details">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.FacilityId"
+                               class="btn-action btn-action-edit">
+                                <i class="fas fa-pen"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.FacilityId"
+                               class="btn-action btn-action-delete">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                                }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-hospital"></i>
+            <h5>No Facilities Found</h5>
+            <p>No facilities have been added yet. Get started by registering the first facility.</p>
+            <a asp-action="Create" class="btn-action-create mt-2">
+                <i class="fas fa-plus"></i> Add First Facility
+            </a>
+        </div>
+    }
+</div>

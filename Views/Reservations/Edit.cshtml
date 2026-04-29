@@ -4,45 +4,132 @@
     ViewData["Title"] = "Edit Reservation";
 }
 
-<h2>Edit Reservation</h2>
-
-<form asp-action="Edit">
-    <div asp-validation-summary="ModelOnly"></div>
-    <input type="hidden" asp-for="ReservationId" />
-
-    <div>
-        <label asp-for="FacilityId"></label>
-        <select asp-for="FacilityId" asp-items="ViewBag.FacilityId">
-            <option value="">-- Select Facility --</option>
-        </select>
-        <span asp-validation-for="FacilityId"></span>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <div class="page-header-icon">
+            <i class="fas fa-pen-to-square"></i>
+        </div>
+        <h1>Edit Reservation</h1>
+        <p>Update the details for reservation #@Model.ReservationId</p>
     </div>
+</div>
 
-    <div>
-        <label asp-for="SessionId"></label>
-        <select asp-for="SessionId" asp-items="ViewBag.SessionId">
-            <option value="">-- Select Medical Session --</option>
-        </select>
-        <span asp-validation-for="SessionId"></span>
-    </div>
+<div class="container section-padding">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-    <div>
-        <label asp-for="StartDate"></label>
-        <input asp-for="StartDate" type="datetime-local" />
-        <span asp-validation-for="StartDate"></span>
-    </div>
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb medibook-breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-house me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Reservations</a>
+                    </li>
+                    <li class="breadcrumb-item active">Edit #@Model.ReservationId</li>
+                </ol>
+            </nav>
 
-    <div>
-        <label asp-for="EndDate"></label>
-        <input asp-for="EndDate" type="datetime-local" />
-        <span asp-validation-for="EndDate"></span>
-    </div>
+            <div class="medibook-form-card">
 
-    <div>
-        <input type="submit" value="Save Changes" />
-        <a asp-action="Index">Back to List</a>
+                <!-- Card Header -->
+                <div class="detail-card-header"
+                     style="border-radius:12px 12px 0 0;
+                            margin:-2.5rem -2.5rem 2rem -2.5rem;
+                            padding:1.5rem 2rem;">
+                    <i class="fas fa-pen"></i>
+                    <h4>Edit Reservation <span style="color:#BDE8F5;">#@Model.ReservationId</span></h4>
+                </div>
+
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger d-flex align-items-center gap-2 mb-4"
+                         style="border-radius:10px; font-size:0.88rem;">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <div></div>
+                    </div>
+
+                    <input type="hidden" asp-for="ReservationId" />
+
+                    <!-- Facility & Session Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="FacilityId" class="form-label">
+                                <i class="fas fa-hospital"></i> Facility
+                            </label>
+                            <select asp-for="FacilityId"
+                                    asp-items="ViewBag.FacilityId"
+                                    class="form-select">
+                                <option value="">— Select Facility —</option>
+                            </select>
+                            <span asp-validation-for="FacilityId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SessionId" class="form-label">
+                                <i class="fas fa-stethoscope"></i> Medical Session
+                            </label>
+                            <select asp-for="SessionId"
+                                    asp-items="ViewBag.SessionId"
+                                    class="form-select">
+                                <option value="">— Select Session —</option>
+                            </select>
+                            <span asp-validation-for="SessionId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="mb-4" style="border-top:1px dashed #e2e8f0; padding-top:1.5rem;">
+                        <p class="form-label mb-3" style="color:#4988C4; font-weight:700;
+                                                           font-size:0.82rem; letter-spacing:1px;
+                                                           text-transform:uppercase;">
+                            <i class="fas fa-clock me-1"></i> Reservation Time Window
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label">
+                                    <i class="fas fa-calendar-day"></i> Start Date & Time
+                                </label>
+                                <input asp-for="StartDate"
+                                       class="form-control"
+                                       type="datetime-local" />
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EndDate" class="form-label">
+                                    <i class="fas fa-calendar-check"></i> End Date & Time
+                                </label>
+                                <input asp-for="EndDate"
+                                       class="form-control"
+                                       type="datetime-local" />
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-2 flex-wrap">
+                        <button type="submit" class="btn-medibook-primary">
+                            <i class="fas fa-floppy-disk"></i> Save Changes
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.ReservationId"
+                           class="btn-medibook-outline">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-action="Index" class="btn-medibook-outline">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
     </div>
-</form>
+</div>
 
 @section Scripts {
     @{
