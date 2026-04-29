@@ -2,7 +2,39 @@
 
 @{
     ViewData["Title"] = "Edit Reservation";
+    bool hasServerErrors = !ViewData.ModelState.IsValid &&
+        ViewData.ModelState.Any(k => k.Value!.Errors.Count > 0);
 }
+
+<!-- ── Toast Notification ── -->
+<div id="validationToast"
+     style="position:fixed; top:24px; right:24px; z-index:9999;
+            min-width:320px; max-width:420px; display:none;">
+    <div style="background:#fff; border-radius:14px;
+                box-shadow:0 8px 32px rgba(15,40,84,0.18);
+                border-left:5px solid #dc2626; padding:1rem 1.25rem;
+                display:flex; align-items:flex-start; gap:12px;
+                animation: slideDown 0.4s ease;">
+        <div style="width:36px; height:36px; background:#fee2e2; border-radius:50%;
+                    display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i class="fas fa-circle-exclamation" style="color:#dc2626;"></i>
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:700; color:#991b1b;
+                        font-size:0.92rem; margin-bottom:3px;">
+                Required Fields Missing
+            </div>
+            <div id="toastMessage"
+                 style="font-size:0.84rem; color:#7f1d1d; line-height:1.5;"></div>
+        </div>
+        <button onclick="document.getElementById('validationToast').style.display='none'"
+                style="background:none; border:none; cursor:pointer;
+                       color:#94a3b8; font-size:1rem; padding:0; line-height:1;
+                       flex-shrink:0; margin-top:2px;">
+            <i class="fas fa-xmark"></i>
+        </button>
+    </div>
+</div>
 
 <!-- Page Header -->
 <div class="page-header">
@@ -34,6 +66,19 @@
                 </ol>
             </nav>
 
+            <!-- Server-side error summary (double-booking / date order from controller) -->
+            @if (hasServerErrors)
+            {
+                <div class="d-flex align-items-start gap-3 mb-4 p-3"
+                     style="background:#fef2f2; border-radius:12px;
+                                border-left:4px solid #dc2626;">
+                    <i class="fas fa-circle-exclamation fa-lg mt-1"
+                       style="color:#dc2626; flex-shrink:0;"></i>
+                    <div asp-validation-summary="ModelOnly"
+                         style="font-size:0.88rem; color:#991b1b;"></div>
+                </div>
+            }
+
             <div class="medibook-form-card">
 
                 <!-- Card Header -->
@@ -42,16 +87,13 @@
                             margin:-2.5rem -2.5rem 2rem -2.5rem;
                             padding:1.5rem 2rem;">
                     <i class="fas fa-pen"></i>
-                    <h4>Edit Reservation <span style="color:#BDE8F5;">#@Model.ReservationId</span></h4>
+                    <h4>
+                        Edit Reservation
+                        <span style="color:#BDE8F5;">#@Model.ReservationId</span>
+                    </h4>
                 </div>
 
-                <form asp-action="Edit">
-                    <div asp-validation-summary="ModelOnly"
-                         class="alert alert-danger d-flex align-items-center gap-2 mb-4"
-                         style="border-radius:10px; font-size:0.88rem;">
-                        <i class="fas fa-circle-exclamation"></i>
-                        <div></div>
-                    </div>
+                <form asp-action="Edit" id="reservationEditForm" novalidate>
 
                     <input type="hidden" asp-for="ReservationId" />
 
@@ -63,7 +105,8 @@
                             </label>
                             <select asp-for="FacilityId"
                                     asp-items="ViewBag.FacilityId"
-                                    class="form-select">
+                                    class="form-select"
+                                    id="field-FacilityId">
                                 <option value="">— Select Facility —</option>
                             </select>
                             <span asp-validation-for="FacilityId" class="text-danger"></span>
@@ -74,36 +117,40 @@
                             </label>
                             <select asp-for="SessionId"
                                     asp-items="ViewBag.SessionId"
-                                    class="form-select">
+                                    class="form-select"
+                                    id="field-SessionId">
                                 <option value="">— Select Session —</option>
                             </select>
                             <span asp-validation-for="SessionId" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <!-- Divider -->
-                    <div class="mb-4" style="border-top:1px dashed #e2e8f0; padding-top:1.5rem;">
-                        <p class="form-label mb-3" style="color:#4988C4; font-weight:700;
-                                                           font-size:0.82rem; letter-spacing:1px;
-                                                           text-transform:uppercase;">
+                    <!-- Time Window -->
+                    <div class="mb-4"
+                         style="border-top:1px dashed #e2e8f0; padding-top:1.5rem;">
+                        <p class="form-label mb-3"
+                           style="color:#4988C4; font-weight:700; font-size:0.82rem;
+                                  letter-spacing:1px; text-transform:uppercase;">
                             <i class="fas fa-clock me-1"></i> Reservation Time Window
                         </p>
 
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label asp-for="StartDate" class="form-label">
-                                    <i class="fas fa-calendar-day"></i> Start Date & Time
+                                    <i class="fas fa-calendar-day"></i> Start Date &amp; Time
                                 </label>
                                 <input asp-for="StartDate"
+                                       id="field-StartDate"
                                        class="form-control"
                                        type="datetime-local" />
                                 <span asp-validation-for="StartDate" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="EndDate" class="form-label">
-                                    <i class="fas fa-calendar-check"></i> End Date & Time
+                                    <i class="fas fa-calendar-check"></i> End Date &amp; Time
                                 </label>
                                 <input asp-for="EndDate"
+                                       id="field-EndDate"
                                        class="form-control"
                                        type="datetime-local" />
                                 <span asp-validation-for="EndDate" class="text-danger"></span>
@@ -124,6 +171,7 @@
                             <i class="fas fa-arrow-left"></i> Back to List
                         </a>
                     </div>
+
                 </form>
             </div>
 
@@ -135,4 +183,85 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        // ── All fields required for a reservation ──
+        const requiredFields = [
+            { id: 'field-FacilityId', label: 'Facility' },
+            { id: 'field-SessionId',  label: 'Medical Session' },
+            { id: 'field-StartDate',  label: 'Start Date & Time' },
+            { id: 'field-EndDate',    label: 'End Date & Time' }
+        ];
+
+        document.getElementById('reservationEditForm')
+            .addEventListener('submit', function (e) {
+                const missing = requiredFields.filter(f => {
+                    const el = document.getElementById(f.id);
+                    return !el || el.value.trim() === '' || el.value === '0';
+                });
+
+                // Client-side date order check
+                const startEl = document.getElementById('field-StartDate');
+                const endEl   = document.getElementById('field-EndDate');
+                let dateError = null;
+
+                if (startEl.value && endEl.value &&
+                    new Date(endEl.value) <= new Date(startEl.value)) {
+                    dateError = 'End Date & Time must be after Start Date & Time';
+                    endEl.classList.add('is-invalid');
+                }
+
+                if (missing.length > 0 || dateError) {
+                    e.preventDefault();
+
+                    // Reset then highlight
+                    requiredFields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        if (el) el.classList.remove('is-invalid');
+                    });
+                    missing.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        if (el) el.classList.add('is-invalid');
+                    });
+
+                    let list = missing.map(f =>
+                        `<span style="display:flex; align-items:center; gap:6px; margin-top:3px;">
+                            <i class="fas fa-circle fa-2xs" style="color:#dc2626;"></i>${f.label}
+                         </span>`
+                    ).join('');
+
+                    if (dateError) {
+                        list += `<span style="display:flex; align-items:center;
+                                              gap:6px; margin-top:3px;">
+                                    <i class="fas fa-circle fa-2xs"
+                                       style="color:#dc2626;"></i>${dateError}
+                                 </span>`;
+                    }
+
+                    const intro = missing.length > 0
+                        ? `Please fill in the following required field${missing.length > 1 ? 's' : ''}:`
+                        : 'Please fix the following:';
+
+                    document.getElementById('toastMessage').innerHTML =
+                        `${intro}<div style="margin-top:6px;">${list}</div>`;
+
+                    const toast = document.getElementById('validationToast');
+                    toast.style.display = 'block';
+
+                    clearTimeout(window._toastTimer);
+                    window._toastTimer = setTimeout(() =>
+                        toast.style.display = 'none', 6000);
+
+                    const firstInvalid = document.querySelector('.is-invalid');
+                    if (firstInvalid)
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+        // Clear highlight on change / input
+        requiredFields.forEach(f => {
+            const el = document.getElementById(f.id);
+            if (el) el.addEventListener('change', () => el.classList.remove('is-invalid'));
+            if (el) el.addEventListener('input',  () => el.classList.remove('is-invalid'));
+        });
+    </script>
 }

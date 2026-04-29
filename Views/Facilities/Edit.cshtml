@@ -2,7 +2,41 @@
 
 @{
     ViewData["Title"] = "Edit Facility";
+    bool hasServerErrors = !ViewData.ModelState.IsValid &&
+        ViewData.ModelState.Any(k => k.Key != "ImageFile" &&
+            k.Value!.Errors.Count > 0);
 }
+
+<!-- ── Toast Notification ── -->
+<div id="validationToast"
+     style="position:fixed; top:24px; right:24px; z-index:9999;
+            min-width:320px; max-width:420px; display:none;">
+    <div style="background:#fff; border-radius:14px;
+                box-shadow:0 8px 32px rgba(15,40,84,0.18);
+                border-left:5px solid #dc2626; padding:1rem 1.25rem;
+                display:flex; align-items:flex-start; gap:12px;
+                animation: slideDown 0.4s ease;">
+        <div style="width:36px; height:36px; background:#fee2e2; border-radius:50%;
+                    display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i class="fas fa-circle-exclamation" style="color:#dc2626;"></i>
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:700; color:#991b1b;
+                        font-size:0.92rem; margin-bottom:3px;">
+                Required Fields Missing
+            </div>
+            <div id="toastMessage"
+                 style="font-size:0.84rem; color:#7f1d1d; line-height:1.5;">
+            </div>
+        </div>
+        <button onclick="document.getElementById('validationToast').style.display='none'"
+                style="background:none; border:none; cursor:pointer;
+                       color:#94a3b8; font-size:1rem; padding:0; line-height:1;
+                       flex-shrink:0; margin-top:2px;">
+            <i class="fas fa-xmark"></i>
+        </button>
+    </div>
+</div>
 
 <!-- Page Header -->
 <div class="page-header">
@@ -35,6 +69,19 @@
                 </ol>
             </nav>
 
+            <!-- Server-side error summary (blob/image upload errors) -->
+            @if (hasServerErrors)
+            {
+                <div class="d-flex align-items-start gap-3 mb-4 p-3"
+                     style="background:#fef2f2; border-radius:12px;
+                                border-left:4px solid #dc2626;">
+                    <i class="fas fa-circle-exclamation fa-lg mt-1"
+                       style="color:#dc2626; flex-shrink:0;"></i>
+                    <div asp-validation-summary="ModelOnly"
+                         style="font-size:0.88rem; color:#991b1b;"></div>
+                </div>
+            }
+
             <div class="medibook-form-card">
 
                 <!-- Card Header -->
@@ -46,18 +93,10 @@
                     <h4>Edit — @Model.Name</h4>
                 </div>
 
-                <!-- enctype must be multipart to support file uploads -->
-                <form asp-action="Edit" enctype="multipart/form-data">
-                    <div asp-validation-summary="ModelOnly"
-                         class="alert alert-danger d-flex align-items-center gap-2 mb-4"
-                         style="border-radius:10px; font-size:0.88rem;">
-                        <i class="fas fa-circle-exclamation"></i>
-                        <div></div>
-                    </div>
+                <form asp-action="Edit" enctype="multipart/form-data" id="facilityEditForm"
+                      novalidate>
 
                     <input type="hidden" asp-for="FacilityId" />
-
-                    <!-- Hidden field preserves current ImageUrl when no new file is uploaded -->
                     <input type="hidden" asp-for="ImageUrl" />
 
                     <!-- Facility Name -->
@@ -65,7 +104,9 @@
                         <label asp-for="Name" class="form-label">
                             <i class="fas fa-tag"></i> Facility Name
                         </label>
-                        <input asp-for="Name" class="form-control" />
+                        <input asp-for="Name"
+                               id="field-Name"
+                               class="form-control" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
@@ -74,7 +115,9 @@
                         <label asp-for="Location" class="form-label">
                             <i class="fas fa-location-dot"></i> Location
                         </label>
-                        <input asp-for="Location" class="form-control" />
+                        <input asp-for="Location"
+                               id="field-Location"
+                               class="form-control" />
                         <span asp-validation-for="Location" class="text-danger"></span>
                     </div>
 
@@ -82,9 +125,13 @@
                     <div class="mb-4">
                         <label asp-for="Description" class="form-label">
                             <i class="fas fa-align-left"></i> Description
-                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
+                            <span style="font-weight:400; color:#94a3b8;
+                                         font-size:0.8rem;">(optional)</span>
                         </label>
-                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        <textarea asp-for="Description"
+                                  id="field-Description"
+                                  class="form-control"
+                                  rows="4"></textarea>
                         <div class="form-text">Maximum 300 characters.</div>
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
@@ -94,7 +141,11 @@
                         <label asp-for="Capacity" class="form-label">
                             <i class="fas fa-users"></i> Capacity
                         </label>
-                        <input asp-for="Capacity" class="form-control" type="number" min="1" />
+                        <input asp-for="Capacity"
+                               id="field-Capacity"
+                               class="form-control"
+                               type="number"
+                               min="1" />
                         <div class="form-text">
                             Maximum number of people this facility can accommodate.
                         </div>
@@ -107,7 +158,6 @@
                             <i class="fas fa-image"></i> Facility Image
                         </label>
 
-                        <!-- Current image preview -->
                         <div class="mb-3 p-3"
                              style="background:#f8faff; border-radius:10px;
                                     border:1px solid #e2e8f0;">
@@ -122,11 +172,12 @@
                                  onerror="this.src='/images/placeholder-facility.jpg'" />
                         </div>
 
-                        <!-- Replace image upload -->
                         <p class="form-label mb-2" style="font-size:0.82rem; color:#64748b;">
                             <i class="fas fa-rotate me-1" style="color:#4988C4;"></i>
                             Replace Image
-                            <span style="font-weight:400; color:#94a3b8;">(optional — leave blank to keep current)</span>
+                            <span style="font-weight:400; color:#94a3b8;">
+                                (optional — leave blank to keep current)
+                            </span>
                         </p>
 
                         <div style="border:2px dashed #BDE8F5; border-radius:12px;
@@ -135,7 +186,7 @@
                              id="dropZoneEdit"
                              ondragover="event.preventDefault(); this.style.borderColor='#4988C4';"
                              ondragleave="this.style.borderColor='#BDE8F5';"
-                             ondrop="handleDrop(event, 'ImageFileInput', 'previewEdit', 'dropZoneEdit')">
+                             ondrop="handleDrop(event,'ImageFileInput','previewEdit','dropZoneEdit')">
                             <i class="fas fa-cloud-arrow-up fa-xl mb-1"
                                style="color:#4988C4;"></i>
                             <p class="mb-0 mt-1" style="font-size:0.85rem; color:#64748b;">
@@ -154,21 +205,20 @@
                                    id="ImageFileInput"
                                    accept="image/*"
                                    class="d-none"
-                                   onchange="previewImage(this, 'previewEdit')" />
+                                   onchange="previewImage(this,'previewEdit')" />
                         </div>
 
-                        <!-- New image preview -->
                         <div id="previewEdit" class="mt-3 d-none">
                             <p class="form-label mb-2" style="font-size:0.82rem;">
-                                <i class="fas fa-eye" style="color:#4988C4;"></i> New Image Preview
+                                <i class="fas fa-eye" style="color:#4988C4;"></i>
+                                New Image Preview
                             </p>
-                            <img id="previewEditImg"
-                                 src="#" alt="New Preview"
+                            <img id="previewEditImg" src="#" alt="New Preview"
                                  style="height:120px; width:auto; border-radius:10px;
                                         border:2px solid #4988C4;" />
                             <button type="button"
                                     class="btn-action btn-action-delete ms-3"
-                                    onclick="clearImage('ImageFileInput', 'previewEdit')">
+                                    onclick="clearImage('ImageFileInput','previewEdit')">
                                 <i class="fas fa-xmark"></i> Remove
                             </button>
                         </div>
@@ -189,6 +239,7 @@
                             <i class="fas fa-arrow-left"></i> Back to List
                         </a>
                     </div>
+
                 </form>
             </div>
 
@@ -201,14 +252,69 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        // ── Required fields (Description excluded since it's optional in Edit) ──
+        const requiredFields = [
+            { id: 'field-Name',     label: 'Facility Name' },
+            { id: 'field-Location', label: 'Location' },
+            { id: 'field-Capacity', label: 'Capacity' }
+        ];
+
+        document.getElementById('facilityEditForm')
+            .addEventListener('submit', function (e) {
+                const missing = requiredFields.filter(f => {
+                    const el = document.getElementById(f.id);
+                    return !el || el.value.trim() === '';
+                });
+
+                if (missing.length > 0) {
+                    e.preventDefault();
+
+                    requiredFields.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        if (el) el.classList.remove('is-invalid');
+                    });
+                    missing.forEach(f => {
+                        const el = document.getElementById(f.id);
+                        if (el) el.classList.add('is-invalid');
+                    });
+
+                    const list = missing.map(f =>
+                        `<span style="display:flex; align-items:center; gap:6px; margin-top:3px;">
+                            <i class="fas fa-circle fa-2xs" style="color:#dc2626;"></i>${f.label}
+                         </span>`
+                    ).join('');
+
+                    document.getElementById('toastMessage').innerHTML =
+                        `Please fill in the following required field${missing.length > 1 ? 's' : ''}:
+                         <div style="margin-top:6px;">${list}</div>`;
+
+                    const toast = document.getElementById('validationToast');
+                    toast.style.display = 'block';
+
+                    clearTimeout(window._toastTimer);
+                    window._toastTimer = setTimeout(() => {
+                        toast.style.display = 'none';
+                    }, 6000);
+
+                    const firstEl = document.getElementById(missing[0].id);
+                    if (firstEl) firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+        requiredFields.forEach(f => {
+            const el = document.getElementById(f.id);
+            if (el) el.addEventListener('input', () => el.classList.remove('is-invalid'));
+        });
+
+        // ── Image helpers ──
         function previewImage(input, previewId) {
-            const previewContainer = document.getElementById(previewId);
-            const previewImg = document.getElementById(previewId + 'Img');
+            const container = document.getElementById(previewId);
+            const img = document.getElementById(previewId + 'Img');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = e => {
-                    previewImg.src = e.target.result;
-                    previewContainer.classList.remove('d-none');
+                    img.src = e.target.result;
+                    container.classList.remove('d-none');
                 };
                 reader.readAsDataURL(input.files[0]);
             }
