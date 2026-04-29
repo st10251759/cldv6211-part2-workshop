@@ -1,5 +1,6 @@
 using MediBook.Data;
 using Microsoft.EntityFrameworkCore;
+using MediBook.Services;
 
 namespace MediBook
 {
@@ -24,6 +25,9 @@ Date Accessed: 28 April 2026
             // Register MediBookDbContext with the SQL LocalDB connection string from appsettings.json
             builder.Services.AddDbContext<MediBookDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("MediBookDbContext")));
+
+            //Regsitering Blob Service as a singleton to be used across the application
+            builder.Services.AddSingleton<MediBook.Services.BlobService>();
 
             var app = builder.Build();
 
