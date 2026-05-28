@@ -8,7 +8,7 @@ using MediBook.Models;
 ==============================Code Attribution==================================
 ASP.NET MVC Controllers
 Author: Microsoft
-Link: https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions
+Link: [https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions)
 Date Accessed: 28 April 2026
 ==============================Code Attribution==================================
 */
@@ -27,25 +27,101 @@ namespace MediBook.Controllers
             _context = context;
         }
 
-        // GET: Reservations — with optional search
-        public async Task<IActionResult> Index(string? searchQuery)
+        // GET: Reservations — advanced search and filters
+        public async Task<IActionResult> Index(
+            string? searchQuery,
+            string? selectedCategory,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? availability)
         {
             ViewData["SearchQuery"] = searchQuery;
+            ViewData["SelectedCategory"] = selectedCategory;
+            ViewData["StartDate"] = startDate?.ToString("yyyy-MM-dd");
+            ViewData["EndDate"] = endDate?.ToString("yyyy-MM-dd");
+            ViewData["Availability"] = availability;
+
+            ViewBag.CategoryList = new SelectList(
+                Enum.GetValues(typeof(SessionCategory))
+                    .Cast<SessionCategory>()
+                    .Select(x => new { Value = x.ToString(), Text = x.ToString() }),
+                "Value",
+                "Text",
+                selectedCategory);
 
             var reservations = _context.Reservations
                 .Include(r => r.Facility)
                 .Include(r => r.MedicalSession)
                 .AsQueryable();
 
-            // ── SEARCH: filter by ReservationId or MedicalSession Name ──
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
-                // Try to parse as integer for ID search
-                bool isIdSearch = int.TryParse(searchQuery.Trim(), out int searchId);
+                var term = searchQuery.Trim();
+                bool isIdSearch = int.TryParse(term, out int searchId);
 
                 reservations = reservations.Where(r =>
                     (isIdSearch && r.ReservationId == searchId) ||
-                    r.MedicalSession!.Name.Contains(searchQuery));
+                    (r.MedicalSession != null && r.MedicalSession.Name.Contains(term)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(selectedCategory) &&
+                Enum.TryParse<SessionCategory>(selectedCategory, out var categoryValue))
+            {
+                reservations = reservations.Where(r =>
+                    r.MedicalSession != null &&
+                    r.MedicalSession.Category == categoryValue);
+            }
+
+            if (startDate.HasValue)
+            {
+                var from = startDate.Value.Date;
+                reservations = reservations.Where(r => r.StartDate.Date >= from);
+            }
+
+            if (endDate.HasValue)
+            {
+                var to = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                reservations = reservations.Where(r => r.EndDate <= to);
+            }
+
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                var from = startDate.Value;
+                var to = endDate.Value.Date.AddDays(1).AddTicks(-1);
+
+                reservations = reservations.Where(r =>
+                    r.StartDate < to &&
+                    r.EndDate > from);
+            }
+
+            if (!string.IsNullOrWhiteSpace(availability))
+            {
+                availability = availability.Trim().ToLower();
+
+                if (startDate.HasValue && endDate.HasValue)
+                {
+                    var from = startDate.Value;
+                    var to = endDate.Value.Date.AddDays(1).AddTicks(-1);
+
+                    if (availability == "available")
+                    {
+                        reservations = reservations.Where(r =>
+                            !_context.Reservations.Any(x =>
+                                x.FacilityId == r.FacilityId &&
+                                x.ReservationId != r.ReservationId &&
+                                x.StartDate < to &&
+                                x.EndDate > from));
+                    }
+                    else if (availability == "unavailable")
+                    {
+                        reservations = reservations.Where(r =>
+                            _context.Reservations.Any(x =>
+                                x.FacilityId == r.FacilityId &&
+                                x.ReservationId != r.ReservationId &&
+                                x.StartDate < to &&
+                                x.EndDate > from));
+                    }
+                }
             }
 
             return View(await reservations.ToListAsync());
@@ -80,19 +156,14 @@ namespace MediBook.Controllers
         public async Task<IActionResult> Create(
             [Bind("ReservationId,FacilityId,SessionId,StartDate,EndDate")] Reservation reservation)
         {
-            // Validate that StartDate is before EndDate
             if (reservation.StartDate >= reservation.EndDate)
-                ModelState.AddModelError("EndDate",
-                    "End date must be after the start date.");
+                ModelState.AddModelError("EndDate", "End date must be after the start date.");
 
-            // VALIDATION: Prevent double booking — only check if dates are valid first
             if (reservation.StartDate < reservation.EndDate &&
-                HasDoubleBooking(reservation.FacilityId,
-                    reservation.StartDate, reservation.EndDate))
+                HasDoubleBooking(reservation.FacilityId, reservation.StartDate, reservation.EndDate))
             {
                 ModelState.AddModelError("",
-                    "This facility is already reserved during the selected time window. " +
-                    "Please choose a different time slot or select a different facility.");
+                    "This facility is already reserved during the selected time window. Please choose a different time slot or select a different facility.");
             }
 
             if (ModelState.IsValid)
@@ -103,10 +174,8 @@ namespace MediBook.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["FacilityId"] = new SelectList(_context.Facilities,
-                "FacilityId", "Name", reservation.FacilityId);
-            ViewData["SessionId"] = new SelectList(_context.MedicalSessions,
-                "SessionId", "Name", reservation.SessionId);
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name", reservation.FacilityId);
+            ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name", reservation.SessionId);
             return View(reservation);
         }
 
@@ -119,14 +188,12 @@ namespace MediBook.Controllers
 
             if (reservation == null) return NotFound();
 
-            ViewData["FacilityId"] = new SelectList(_context.Facilities,
-                "FacilityId", "Name", reservation.FacilityId);
-            ViewData["SessionId"] = new SelectList(_context.MedicalSessions,
-                "SessionId", "Name", reservation.SessionId);
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name", reservation.FacilityId);
+            ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name", reservation.SessionId);
             return View(reservation);
         }
 
-        // POST: Reservations/Edit/5 — validates dates, checks double booking, updates record
+        // POST: Reservations/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
@@ -134,21 +201,16 @@ namespace MediBook.Controllers
         {
             if (id != reservation.ReservationId) return NotFound();
 
-            // Validate that StartDate is before EndDate
             if (reservation.StartDate >= reservation.EndDate)
-                ModelState.AddModelError("EndDate",
-                    "End date must be after the start date.");
+                ModelState.AddModelError("EndDate", "End date must be after the start date.");
 
-            // VALIDATION: Prevent double booking — exclude this record's own ID
-            // so editing without changing the time does not falsely trigger the check
             if (reservation.StartDate < reservation.EndDate &&
                 HasDoubleBooking(reservation.FacilityId,
                     reservation.StartDate, reservation.EndDate,
                     reservation.ReservationId))
             {
                 ModelState.AddModelError("",
-                    "This facility is already reserved during the selected time window. " +
-                    "Please choose a different time slot or select a different facility.");
+                    "This facility is already reserved during the selected time window. Please choose a different time slot or select a different facility.");
             }
 
             if (ModelState.IsValid)
@@ -167,14 +229,12 @@ namespace MediBook.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["FacilityId"] = new SelectList(_context.Facilities,
-                "FacilityId", "Name", reservation.FacilityId);
-            ViewData["SessionId"] = new SelectList(_context.MedicalSessions,
-                "SessionId", "Name", reservation.SessionId);
+            ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "Name", reservation.FacilityId);
+            ViewData["SessionId"] = new SelectList(_context.MedicalSessions, "SessionId", "Name", reservation.SessionId);
             return View(reservation);
         }
 
-        // GET: Reservations/Delete/5 — displays delete confirmation page
+        // GET: Reservations/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -189,7 +249,7 @@ namespace MediBook.Controllers
             return View(reservation);
         }
 
-        // POST: Reservations/Delete/5 — removes the reservation from the database
+        // POST: Reservations/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -206,11 +266,7 @@ namespace MediBook.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ── Private: Checks if a facility is already booked during the requested window ──
-        // Uses overlap logic: two ranges overlap when StartA < EndB AND EndA > StartB.
-        // excludeReservationId is passed during Edit so the record does not conflict with itself.
-        private bool HasDoubleBooking(int facilityId, DateTime startDate, DateTime endDate,
-            int? excludeReservationId = null)
+        private bool HasDoubleBooking(int facilityId, DateTime startDate, DateTime endDate, int? excludeReservationId = null)
         {
             return _context.Reservations.Any(r =>
                 r.FacilityId == facilityId &&
@@ -219,7 +275,6 @@ namespace MediBook.Controllers
                 r.EndDate > startDate);
         }
 
-        // Helper — checks whether a reservation with the given ID exists
         private bool ReservationExists(int id)
         {
             return _context.Reservations.Any(r => r.ReservationId == id);

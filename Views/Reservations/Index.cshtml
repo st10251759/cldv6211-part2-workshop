@@ -1,7 +1,22 @@
 ﻿@model IEnumerable<MediBook.Models.Reservation>
+@using MediBook.Models
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Reservations";
+
+    var searchQuery = ViewData["SearchQuery"]?.ToString();
+    var selectedCategory = ViewData["SelectedCategory"]?.ToString();
+    var startDate = ViewData["StartDate"]?.ToString();
+    var endDate = ViewData["EndDate"]?.ToString();
+    var availability = ViewData["Availability"]?.ToString();
+
+    var hasFilters =
+        !string.IsNullOrWhiteSpace(searchQuery) ||
+        !string.IsNullOrWhiteSpace(selectedCategory) ||
+        !string.IsNullOrWhiteSpace(startDate) ||
+        !string.IsNullOrWhiteSpace(endDate) ||
+        !string.IsNullOrWhiteSpace(availability);
 }
 
 <!-- Page Header -->
@@ -15,41 +30,98 @@
     </div>
 </div>
 
-<!-- Search Bar -->
+<!-- Advanced Filter Panel -->
 <div class="container mt-4">
     <form asp-action="Index" method="get">
-        <div class="d-flex gap-3 align-items-center flex-wrap"
-             style="background:#fff; border-radius:14px; padding:1.2rem 1.5rem;
-                    box-shadow:0 4px 20px rgba(15,40,84,0.08);
-                    border:1px solid rgba(189,232,245,0.4);">
-            <div class="flex-grow-1" style="min-width:220px;">
-                <div style="position:relative;">
-                    <i class="fas fa-search"
-                       style="position:absolute; left:14px; top:50%;
-                              transform:translateY(-50%); color:#4988C4;"></i>
+        <div class="medibook-form-card">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label"><i class="fas fa-search"></i> Search</label>
                     <input type="text"
                            name="searchQuery"
-                           value="@ViewData["SearchQuery"]"
+                           value="@searchQuery"
                            class="form-control"
-                           style="padding-left:42px;"
-                           placeholder="Search by Reservation ID or Session Name..." />
+                           placeholder="Reservation ID or session name..." />
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label"><i class="fas fa-layer-group"></i> Category</label>
+                    <select name="selectedCategory" class="form-select">
+                        <option value="">All Categories</option>
+                        @foreach (SessionCategory category in Enum.GetValues(typeof(SessionCategory)))
+                        {
+                            <option value="@category" selected="@(selectedCategory == category.ToString())">
+                                @category
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label"><i class="fas fa-calendar-day"></i> From</label>
+                    <input type="date"
+                           name="startDate"
+                           value="@startDate"
+                           class="form-control" />
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label"><i class="fas fa-calendar-check"></i> To</label>
+                    <input type="date"
+                           name="endDate"
+                           value="@endDate"
+                           class="form-control" />
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label"><i class="fas fa-clipboard-check"></i> Availability</label>
+                    <select name="availability" class="form-select">
+                        <option value="">All</option>
+                        <option value="available" selected="@(availability == "available")">Available</option>
+                        <option value="unavailable" selected="@(availability == "unavailable")">Unavailable</option>
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex gap-2 flex-wrap mt-2">
+                    <button type="submit" class="btn-medibook-primary">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+
+                    @if (hasFilters)
+                    {
+                        <a asp-action="Index" class="btn-medibook-outline">
+                            <i class="fas fa-xmark"></i> Clear Filters
+                        </a>
+                    }
                 </div>
             </div>
-            <button type="submit" class="btn-medibook-primary" style="white-space:nowrap;">
-                <i class="fas fa-search"></i> Search
-            </button>
-            @if (!string.IsNullOrEmpty(ViewData["SearchQuery"]?.ToString()))
-            {
-                <a asp-action="Index" class="btn-medibook-outline" style="white-space:nowrap;">
-                    <i class="fas fa-xmark"></i> Clear
-                </a>
-            }
         </div>
-        @if (!string.IsNullOrEmpty(ViewData["SearchQuery"]?.ToString()))
+
+        @if (hasFilters)
         {
             <p class="mt-2 mb-0" style="font-size:0.85rem; color:#64748b; padding-left:4px;">
                 <i class="fas fa-filter me-1" style="color:#4988C4;"></i>
-                Showing results for: <strong>"@ViewData["SearchQuery"]"</strong>
+                Filters active
+                @if (!string.IsNullOrWhiteSpace(searchQuery))
+                {
+                    <span> | Search: <strong>"@searchQuery"</strong></span>
+                }
+                @if (!string.IsNullOrWhiteSpace(selectedCategory))
+                {
+                    <span> | Category: <strong>@selectedCategory</strong></span>
+                }
+                @if (!string.IsNullOrWhiteSpace(startDate))
+                {
+                    <span> | From: <strong>@startDate</strong></span>
+                }
+                @if (!string.IsNullOrWhiteSpace(endDate))
+                {
+                    <span> | To: <strong>@endDate</strong></span>
+                }
+                @if (!string.IsNullOrWhiteSpace(availability))
+                {
+                    <span> | Availability: <strong>@availability</strong></span>
+                }
             </p>
         }
     </form>
@@ -58,7 +130,6 @@
 <!-- Main Content -->
 <div class="container section-padding">
 
-    <!-- Toolbar -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <span class="text-secondary" style="font-size:0.9rem;">
@@ -80,6 +151,7 @@
                         <th><i class="fas fa-hashtag me-1"></i> Res. ID</th>
                         <th><i class="fas fa-hospital me-1"></i> Facility</th>
                         <th><i class="fas fa-stethoscope me-1"></i> Medical Session</th>
+                        <th><i class="fas fa-layer-group me-1"></i> Category</th>
                         <th><i class="fas fa-calendar-day me-1"></i> Start Date</th>
                         <th><i class="fas fa-calendar-check me-1"></i> End Date</th>
                         <th><i class="fas fa-clock me-1"></i> Duration</th>
@@ -111,10 +183,15 @@
                             <td>
                                 <div style="font-weight:500; color:#334155; font-size:0.88rem;">
                                     <i class="fas fa-stethoscope me-1" style="color:#4988C4;"></i>
-                                    @(item.MedicalSession?.Name.Length > 35
+                                    @(item.MedicalSession?.Name?.Length > 35
                                                                 ? item.MedicalSession.Name.Substring(0, 35) + "..."
                                                                 : item.MedicalSession?.Name ?? "—")
                         </div>
+                    </td>
+                    <td>
+                        <span class="badge-capacity">
+                            @(item.MedicalSession?.Category.ToString() ?? "—")
+                        </span>
                     </td>
                     <td>
                         <span class="badge-capacity">
@@ -164,7 +241,7 @@
         <div class="empty-state">
             <i class="fas fa-calendar-xmark"></i>
             <h5>No Reservations Found</h5>
-            <p>No reservations have been made yet. Get started by creating the first reservation.</p>
+            <p>No reservations match the selected filters. Try adjusting your search criteria.</p>
             <a asp-action="Create" class="btn-action-create mt-2">
                 <i class="fas fa-plus"></i> Create First Reservation
             </a>
