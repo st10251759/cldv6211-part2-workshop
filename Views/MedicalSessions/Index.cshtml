@@ -33,13 +33,13 @@
 
     @if (Model.Any())
     {
-        <!-- Sessions Table -->
         <div class="table-responsive">
             <table class="table medibook-table">
                 <thead>
                     <tr>
                         <th><i class="fas fa-image me-1"></i> Image</th>
                         <th><i class="fas fa-tag me-1"></i> @Html.DisplayNameFor(m => m.Name)</th>
+                        <th><i class="fas fa-layer-group me-1"></i> Category</th>
                         <th><i class="fas fa-align-left me-1"></i> Description</th>
                         <th><i class="fas fa-calendar-day me-1"></i> @Html.DisplayNameFor(m => m.StartDate)</th>
                         <th><i class="fas fa-calendar-check me-1"></i> @Html.DisplayNameFor(m => m.EndDate)</th>
@@ -62,9 +62,19 @@
                                 </span>
                             </td>
                             <td>
-                                <span style="color:#64748b; font-size:0.88rem;">
-                                    @(string.IsNullOrEmpty(item.Description) ? "—" :
-                                                                (item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description))
+                                @if (item.Category.HasValue)
+                                {
+                                    <span class="badge-capacity">@item.Category.Value</span>
+                                }
+                                else
+                                {
+                                    <span style="color:#94a3b8; font-size:0.88rem;">Not set</span>
+                                }
+                        </td>
+                        <td>
+                            <span style="color:#64748b; font-size:0.88rem;">
+                                @(string.IsNullOrEmpty(item.Description) ? "—" :
+                                                            (item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description))
                         </span>
                     </td>
                     <td>

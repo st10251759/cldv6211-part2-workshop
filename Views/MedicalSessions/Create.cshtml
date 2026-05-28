@@ -69,7 +69,7 @@
                 </ol>
             </nav>
 
-            <!-- Server-side error summary (blob / date errors) -->
+            <!-- Server-side error summary -->
             @if (hasServerErrors)
             {
                 <div class="d-flex align-items-start gap-3 mb-4 p-3"
@@ -104,8 +104,22 @@
                         <input asp-for="Name"
                                id="field-Name"
                                class="form-control"
-                               placeholder="e.g. Hip Replacement Surgery — Batch A" />
+                               placeholder="e.g. Hip Replacement Surgery - Batch A" />
                         <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-4">
+                        <label asp-for="Category" class="form-label">
+                            <i class="fas fa-layer-group"></i> Session Category
+                        </label>
+                        <select asp-for="Category"
+                                asp-items="Html.GetEnumSelectList<MediBook.Models.SessionCategory>()"
+                                id="field-Category"
+                                class="form-select">
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
                     </div>
 
                     <!-- Description -->
@@ -172,7 +186,7 @@
                                 </label>
                             </p>
                             <p class="mb-0" style="font-size:0.78rem; color:#94a3b8;">
-                                JPG, PNG, GIF, WEBP &mdash; max 5 MB
+                                JPG, PNG, GIF, WEBP - max 5 MB
                             </p>
                             <input asp-for="ImageFile"
                                    type="file"
@@ -221,24 +235,23 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // ── Required fields — Description included for Create, dates both required ──
         const requiredFields = [
-            { id: 'field-Name',        label: 'Session Name' },
+            { id: 'field-Name', label: 'Session Name' },
+            { id: 'field-Category', label: 'Session Category' },
             { id: 'field-Description', label: 'Description' },
-            { id: 'field-StartDate',   label: 'Start Date & Time' },
-            { id: 'field-EndDate',     label: 'End Date & Time' }
+            { id: 'field-StartDate', label: 'Start Date & Time' },
+            { id: 'field-EndDate', label: 'End Date & Time' }
         ];
 
         document.getElementById('sessionCreateForm')
             .addEventListener('submit', function (e) {
                 const missing = requiredFields.filter(f => {
                     const el = document.getElementById(f.id);
-                    return !el || el.value.trim() === '';
+                    return !el || el.value.trim() === '' || el.value === '0';
                 });
 
-                // Also check that EndDate is after StartDate if both filled
                 const startEl = document.getElementById('field-StartDate');
-                const endEl   = document.getElementById('field-EndDate');
+                const endEl = document.getElementById('field-EndDate');
                 let dateError = null;
 
                 if (startEl.value && endEl.value &&
@@ -250,7 +263,6 @@
                 if (missing.length > 0 || dateError) {
                     e.preventDefault();
 
-                    // Highlight missing fields
                     requiredFields.forEach(f => {
                         const el = document.getElementById(f.id);
                         if (el) el.classList.remove('is-invalid');
@@ -260,7 +272,6 @@
                         if (el) el.classList.add('is-invalid');
                     });
 
-                    // Build toast body
                     let list = missing.map(f =>
                         `<span style="display:flex; align-items:center; gap:6px; margin-top:3px;">
                             <i class="fas fa-circle fa-2xs" style="color:#dc2626;"></i>${f.label}
@@ -293,13 +304,12 @@
                 }
             });
 
-        // Clear highlight on input
         requiredFields.forEach(f => {
             const el = document.getElementById(f.id);
             if (el) el.addEventListener('input', () => el.classList.remove('is-invalid'));
+            if (el) el.addEventListener('change', () => el.classList.remove('is-invalid'));
         });
 
-        // ── Image helpers ──
         function previewImage(input, previewId) {
             const container = document.getElementById(previewId);
             const img = document.getElementById(previewId + 'Img');

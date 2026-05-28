@@ -8,7 +8,7 @@ using MediBook.Services;
 ==============================Code Attribution==================================
 ASP.NET MVC Controllers with Azure Blob Storage
 Author: Microsoft
-Link: https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions
+Link: [https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions)
 Date Accessed: 28 April 2026
 ==============================Code Attribution==================================
 */
@@ -17,6 +17,7 @@ namespace MediBook.Controllers
 {
     // Handles all CRUD operations for MedicalSession records.
     // Image uploads are handled via BlobService, which stores images in Azurite.
+    // SessionCategory is nullable to support existing records already in the database.
     public class MedicalSessionsController : Controller
     {
         private readonly MediBookDbContext _context;
@@ -57,7 +58,7 @@ namespace MediBook.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("SessionId,Name,Description,StartDate,EndDate,ImageFile")] MedicalSession session)
+            [Bind("SessionId,Name,Description,StartDate,EndDate,Category,ImageFile")] MedicalSession session)
         {
             // Validate that StartDate is before EndDate
             if (session.StartDate >= session.EndDate)
@@ -117,7 +118,7 @@ namespace MediBook.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
-            [Bind("SessionId,Name,Description,StartDate,EndDate,ImageUrl,ImageFile")] MedicalSession session)
+            [Bind("SessionId,Name,Description,StartDate,EndDate,Category,ImageUrl,ImageFile")] MedicalSession session)
         {
             if (id != session.SessionId) return NotFound();
 
@@ -143,6 +144,15 @@ namespace MediBook.Controllers
                         }
 
                         session.ImageUrl = await _blobService.UploadImageAsync(session.ImageFile);
+                    }
+                    else
+                    {
+                        // Keep the existing image if no new file is uploaded
+                        var existing = await _context.MedicalSessions
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(s => s.SessionId == id);
+
+                        session.ImageUrl = existing?.ImageUrl ?? "/images/placeholder-session.jpg";
                     }
 
                     _context.Update(session);
@@ -170,7 +180,7 @@ namespace MediBook.Controllers
             return View(session);
         }
 
-        // GET: MedicalSessions/Delete/5 — loads session WITH reservations and session names
+        // GET: MedicalSessions/Delete/5 — loads session WITH reservations and facility details
         // for display in the blocked-state table
         public async Task<IActionResult> Delete(int? id)
         {
@@ -187,7 +197,7 @@ namespace MediBook.Controllers
         }
 
         // POST: MedicalSessions/Delete/5 — blocks deletion if active reservations exist,
-        // redirects back to the Delete view (not Index) so the blocked state is shown in context
+        // redirects back to the Delete view so the blocked state is shown in context
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -198,13 +208,11 @@ namespace MediBook.Controllers
 
             if (session == null) return NotFound();
 
-            // VALIDATION: Block deletion if active reservations are linked to this session.
-            // Redirects back to Delete view so the user sees the blocked state with the
-            // reservations table — not a generic Index message.
+            // Block deletion if active reservations are linked to this session.
             if (session.Reservations.Any())
             {
                 TempData["ErrorMessage"] =
-                    $"Cannot delete '{session.Name}' — it has " +
+                    $"Cannot delete '{session.Name}' because it has " +
                     $"{session.Reservations.Count} active reservation(s). " +
                     "Please remove all linked reservations before deleting this session.";
                 return RedirectToAction(nameof(Delete), new { id });

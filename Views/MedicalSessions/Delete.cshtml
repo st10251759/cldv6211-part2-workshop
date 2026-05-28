@@ -5,11 +5,11 @@
     bool hasReservations = Model.Reservations != null && Model.Reservations.Any();
 }
 
-<!-- Page Header — navy if blocked, red if safe to delete -->
+<!-- Page Header -->
 <div class="page-header"
      style="background: @(hasReservations
-              ? "linear-gradient(135deg,#0F2854,#1C4D8D)"
-              : "linear-gradient(135deg,#7f1d1d,#dc2626,#ef4444)");">
+             ? "linear-gradient(135deg,#0F2854,#1C4D8D)"
+             : "linear-gradient(135deg,#7f1d1d,#dc2626,#ef4444)");">
     <div class="container">
         <div class="page-header-icon" style="background:rgba(255,255,255,0.15);">
             <i class="fas fa-@(hasReservations ? "ban" : "triangle-exclamation")"></i>
@@ -17,7 +17,7 @@
         <h1>Delete Medical Session</h1>
         <p>
             @(hasReservations
-                        ? "This session cannot be deleted — active reservations are linked to it"
+                        ? "This session cannot be deleted - active reservations are linked to it"
                         : "This action is permanent and cannot be undone")
         </p>
     </div>
@@ -42,14 +42,10 @@
                 </ol>
             </nav>
 
-            @* ══════════════════════════════════════════
-               BLOCKED STATE — has active reservations
-            ══════════════════════════════════════════ *@
             @if (hasReservations)
             {
                 <div class="detail-card" style="border:2px solid #BDE8F5;">
 
-                    <!-- Blocked Header -->
                     <div class="detail-card-header">
                         <i class="fas fa-ban fa-lg"></i>
                         <div>
@@ -62,7 +58,6 @@
 
                     <div class="p-4">
 
-                        <!-- Blocked Alert Banner -->
                         <div class="d-flex align-items-start gap-3 mb-4 p-3"
                              style="background:#fef2f2; border-radius:12px;
                                         border-left:4px solid #dc2626;">
@@ -71,7 +66,7 @@
                             <div>
                                 <div style="font-weight:700; color:#991b1b;
                                                 font-size:0.95rem; margin-bottom:4px;">
-                                    Cannot Delete — Active Reservations Exist
+                                    Cannot Delete - Active Reservations Exist
                                 </div>
                                 <div style="color:#7f1d1d; font-size:0.88rem; line-height:1.6;">
                                     <strong>@Model.Name</strong> has
@@ -79,13 +74,11 @@
                                         @Model.Reservations.Count
                                         reservation@(Model.Reservations.Count == 1 ? "" : "s")
                                     </strong>
-                                    currently linked to it. You must remove all associated
-                                    reservations before this session can be deleted.
+                                    currently linked to it. You must remove all associated reservations before this session can be deleted.
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Session Summary -->
                         <div class="row g-3 align-items-center mb-4 p-3"
                              style="background:#f8faff; border-radius:12px;
                                         border:1px solid #e2e8f0;">
@@ -101,8 +94,11 @@
                                     @Model.Name
                                 </div>
                                 <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
-                                    <i class="fas fa-calendar-day me-1"
-                                       style="color:#4988C4;"></i>
+                                    <i class="fas fa-layer-group me-1" style="color:#4988C4;"></i>
+                                    @(Model.Category.HasValue? Model.Category.Value.ToString() : "No category set")
+                                </div>
+                                <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+                                    <i class="fas fa-calendar-day me-1" style="color:#4988C4;"></i>
                                     @Model.StartDate.ToString("dd MMM yyyy HH:mm")
                                     <span class="mx-1" style="color:#BDE8F5;">→</span>
                                     @Model.EndDate.ToString("dd MMM yyyy HH:mm")
@@ -126,14 +122,12 @@
                             </div>
                         </div>
 
-                        <!-- Linked Reservations Table -->
                         <div class="mb-4">
                             <p class="form-label mb-2" style="color:#4988C4;">
                                 <i class="fas fa-list me-1"></i>
-                                Linked Reservations — must be removed first
+                                Linked Reservations - must be removed first
                             </p>
-                            <div style="border-radius:12px; overflow:hidden;
-                                            border:1px solid #e2e8f0;">
+                            <div style="border-radius:12px; overflow:hidden; border:1px solid #e2e8f0;">
                                 <table class="table medibook-table mb-0">
                                     <thead>
                                         <tr>
@@ -160,14 +154,12 @@
                                                     @(r.Facility?.Name ?? "—")
                                                 </td>
                                                 <td>
-                                                    <span class="badge-capacity"
-                                                          style="font-size:0.78rem;">
+                                                    <span class="badge-capacity" style="font-size:0.78rem;">
                                                         @r.StartDate.ToString("dd MMM yyyy")
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge-capacity"
-                                                          style="font-size:0.78rem;">
+                                                    <span class="badge-capacity" style="font-size:0.78rem;">
                                                         @r.EndDate.ToString("dd MMM yyyy")
                                                     </span>
                                                 </td>
@@ -186,7 +178,6 @@
                             </div>
                         </div>
 
-                        <!-- Navigation — no delete button shown when blocked -->
                         <div class="d-flex gap-3 flex-wrap">
                             <a asp-action="Details" asp-route-id="@Model.SessionId"
                                class="btn-medibook-primary">
@@ -200,15 +191,10 @@
                     </div>
                 </div>
             }
-
-            @* ══════════════════════════════════════════
-               SAFE STATE — no reservations, can delete
-            ══════════════════════════════════════════ *@
             else
             {
                 <div class="delete-card">
 
-                    <!-- Card Header -->
                     <div class="delete-card-header">
                         <i class="fas fa-trash fa-lg"></i>
                         <div>
@@ -221,17 +207,14 @@
 
                     <div class="p-4">
 
-                        <!-- Warning Banner -->
                         <div class="delete-warning">
                             <i class="fas fa-triangle-exclamation fa-lg"></i>
                             <span>
-                                <strong>Warning:</strong> Deleting this session will permanently
-                                remove it from the system.
+                                <strong>Warning:</strong> Deleting this session will permanently remove it from the system.
                                 This action <strong>cannot be undone</strong>.
                             </span>
                         </div>
 
-                        <!-- Session Preview -->
                         <div class="row g-3 align-items-center mb-4 p-3"
                              style="background:#f8faff; border-radius:12px;
                                         border:1px solid #e2e8f0;">
@@ -247,8 +230,11 @@
                                     @Model.Name
                                 </div>
                                 <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
-                                    <i class="fas fa-calendar-day me-1"
-                                       style="color:#4988C4;"></i>
+                                    <i class="fas fa-layer-group me-1" style="color:#4988C4;"></i>
+                                    @(Model.Category.HasValue? Model.Category.Value.ToString() : "No category set")
+                                </div>
+                                <div style="font-size:0.85rem; color:#64748b; margin-top:4px;">
+                                    <i class="fas fa-calendar-day me-1" style="color:#4988C4;"></i>
                                     @Model.StartDate.ToString("dd MMM yyyy HH:mm")
                                     <span class="mx-1" style="color:#BDE8F5;">→</span>
                                     @Model.EndDate.ToString("dd MMM yyyy HH:mm")
@@ -270,7 +256,6 @@
                             </div>
                         </div>
 
-                        <!-- Confirm Delete Form -->
                         <form asp-action="Delete" class="d-flex gap-3 flex-wrap">
                             <input type="hidden" asp-for="SessionId" />
                             <button type="submit"

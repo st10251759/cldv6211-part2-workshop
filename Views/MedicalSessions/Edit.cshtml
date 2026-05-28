@@ -69,7 +69,6 @@
                 </ol>
             </nav>
 
-            <!-- Server-side error summary (blob / date errors from controller) -->
             @if (hasServerErrors)
             {
                 <div class="d-flex align-items-start gap-3 mb-4 p-3"
@@ -84,13 +83,12 @@
 
             <div class="medibook-form-card">
 
-                <!-- Card Header -->
                 <div class="detail-card-header"
                      style="border-radius:12px 12px 0 0;
                             margin:-2.5rem -2.5rem 2rem -2.5rem;
                             padding:1.5rem 2rem;">
                     <i class="fas fa-pen"></i>
-                    <h4>Edit — @Model.Name</h4>
+                    <h4>Edit - @Model.Name</h4>
                 </div>
 
                 <form asp-action="Edit" enctype="multipart/form-data"
@@ -110,12 +108,25 @@
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
 
+                    <!-- Category -->
+                    <div class="mb-4">
+                        <label asp-for="Category" class="form-label">
+                            <i class="fas fa-layer-group"></i> Session Category
+                        </label>
+                        <select asp-for="Category"
+                                asp-items="Html.GetEnumSelectList<MediBook.Models.SessionCategory>()"
+                                id="field-Category"
+                                class="form-select">
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+
                     <!-- Description -->
                     <div class="mb-4">
                         <label asp-for="Description" class="form-label">
                             <i class="fas fa-align-left"></i> Description
-                            <span style="font-weight:400; color:#94a3b8;
-                                         font-size:0.8rem;">(optional)</span>
+                            <span style="font-weight:400; color:#94a3b8; font-size:0.8rem;">(optional)</span>
                         </label>
                         <textarea asp-for="Description"
                                   id="field-Description"
@@ -155,7 +166,6 @@
                             <i class="fas fa-image"></i> Session Image
                         </label>
 
-                        <!-- Current image preview -->
                         <div class="mb-3 p-3"
                              style="background:#f8faff; border-radius:10px;
                                     border:1px solid #e2e8f0;">
@@ -170,12 +180,11 @@
                                  onerror="this.src='/images/placeholder-session.jpg'" />
                         </div>
 
-                        <!-- Replace image upload -->
                         <p class="form-label mb-2" style="font-size:0.82rem; color:#64748b;">
                             <i class="fas fa-rotate me-1" style="color:#4988C4;"></i>
                             Replace Image
                             <span style="font-weight:400; color:#94a3b8;">
-                                (optional — leave blank to keep current)
+                                (optional - leave blank to keep current)
                             </span>
                         </p>
 
@@ -197,7 +206,7 @@
                                 </label>
                             </p>
                             <p class="mb-0 mt-1" style="font-size:0.75rem; color:#94a3b8;">
-                                JPG, PNG, GIF, WEBP &mdash; max 5 MB
+                                JPG, PNG, GIF, WEBP - max 5 MB
                             </p>
                             <input asp-for="ImageFile"
                                    type="file"
@@ -207,7 +216,6 @@
                                    onchange="previewImage(this,'previewEdit')" />
                         </div>
 
-                        <!-- New image preview -->
                         <div id="previewEdit" class="mt-3 d-none">
                             <p class="form-label mb-2" style="font-size:0.82rem;">
                                 <i class="fas fa-eye" style="color:#4988C4;"></i>
@@ -226,7 +234,6 @@
                         <span asp-validation-for="ImageFile" class="text-danger"></span>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="d-flex gap-3 pt-2 flex-wrap">
                         <button type="submit" class="btn-medibook-primary">
                             <i class="fas fa-floppy-disk"></i> Save Changes
@@ -252,11 +259,11 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        // ── Required fields — Description optional in Edit, dates always required ──
         const requiredFields = [
-            { id: 'field-Name',      label: 'Session Name' },
+            { id: 'field-Name', label: 'Session Name' },
+            { id: 'field-Category', label: 'Session Category' },
             { id: 'field-StartDate', label: 'Start Date & Time' },
-            { id: 'field-EndDate',   label: 'End Date & Time' }
+            { id: 'field-EndDate', label: 'End Date & Time' }
         ];
 
         document.getElementById('sessionEditForm')
@@ -266,9 +273,8 @@
                     return !el || el.value.trim() === '';
                 });
 
-                // Client-side date order check
                 const startEl = document.getElementById('field-StartDate');
-                const endEl   = document.getElementById('field-EndDate');
+                const endEl = document.getElementById('field-EndDate');
                 let dateError = null;
 
                 if (startEl.value && endEl.value &&
@@ -321,13 +327,12 @@
                 }
             });
 
-        // Clear highlight on input
         requiredFields.forEach(f => {
             const el = document.getElementById(f.id);
             if (el) el.addEventListener('input', () => el.classList.remove('is-invalid'));
+            if (el) el.addEventListener('change', () => el.classList.remove('is-invalid'));
         });
 
-        // ── Image helpers ──
         function previewImage(input, previewId) {
             const container = document.getElementById(previewId);
             const img = document.getElementById(previewId + 'Img');
