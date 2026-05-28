@@ -39,6 +39,11 @@ namespace MediBook.Models
         [Display(Name = "Start Date")]
         public DateTime StartDate { get; set; }
 
+        // Nullable so that existing records without a category are not affected
+        // when this column is added via migration.
+        [Display(Name = "Session Category")]
+        public SessionCategory? Category { get; set; }
+
         // The date and time the medical session ends.
         // Must be after StartDate — validated in the controller.
         [Required(ErrorMessage = "End date is required.")]
