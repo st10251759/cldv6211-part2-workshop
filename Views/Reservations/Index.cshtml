@@ -9,14 +9,12 @@
     var selectedCategory = ViewData["SelectedCategory"]?.ToString();
     var startDate = ViewData["StartDate"]?.ToString();
     var endDate = ViewData["EndDate"]?.ToString();
-    var availability = ViewData["Availability"]?.ToString();
 
     var hasFilters =
         !string.IsNullOrWhiteSpace(searchQuery) ||
         !string.IsNullOrWhiteSpace(selectedCategory) ||
         !string.IsNullOrWhiteSpace(startDate) ||
-        !string.IsNullOrWhiteSpace(endDate) ||
-        !string.IsNullOrWhiteSpace(availability);
+        !string.IsNullOrWhiteSpace(endDate);
 }
 
 <!-- Page Header -->
@@ -35,7 +33,7 @@
     <form asp-action="Index" method="get">
         <div class="medibook-form-card">
             <div class="row g-3 align-items-end">
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-5 col-md-6">
                     <label class="form-label"><i class="fas fa-search"></i> Search</label>
                     <input type="text"
                            name="searchQuery"
@@ -44,7 +42,7 @@
                            placeholder="Reservation ID or session name..." />
                 </div>
 
-                <div class="col-lg-2 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label"><i class="fas fa-layer-group"></i> Category</label>
                     <select name="selectedCategory" class="form-select">
                         <option value="">All Categories</option>
@@ -71,15 +69,6 @@
                            name="endDate"
                            value="@endDate"
                            class="form-control" />
-                </div>
-
-                <div class="col-lg-2 col-md-6">
-                    <label class="form-label"><i class="fas fa-clipboard-check"></i> Availability</label>
-                    <select name="availability" class="form-select">
-                        <option value="">All</option>
-                        <option value="available" selected="@(availability == "available")">Available</option>
-                        <option value="unavailable" selected="@(availability == "unavailable")">Unavailable</option>
-                    </select>
                 </div>
 
                 <div class="col-12 d-flex gap-2 flex-wrap mt-2">
@@ -117,10 +106,6 @@
                 @if (!string.IsNullOrWhiteSpace(endDate))
                 {
                     <span> | To: <strong>@endDate</strong></span>
-                }
-                @if (!string.IsNullOrWhiteSpace(availability))
-                {
-                    <span> | Availability: <strong>@availability</strong></span>
                 }
             </p>
         }

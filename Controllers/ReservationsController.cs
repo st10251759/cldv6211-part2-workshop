@@ -8,7 +8,7 @@ using MediBook.Models;
 ==============================Code Attribution==================================
 ASP.NET MVC Controllers
 Author: Microsoft
-Link: [https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions)
+Link: https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/actions
 Date Accessed: 28 April 2026
 ==============================Code Attribution==================================
 */
@@ -32,15 +32,15 @@ namespace MediBook.Controllers
             string? searchQuery,
             string? selectedCategory,
             DateTime? startDate,
-            DateTime? endDate,
-            string? availability)
+            DateTime? endDate)
         {
+            // Preserve filter values for the view
             ViewData["SearchQuery"] = searchQuery;
             ViewData["SelectedCategory"] = selectedCategory;
             ViewData["StartDate"] = startDate?.ToString("yyyy-MM-dd");
             ViewData["EndDate"] = endDate?.ToString("yyyy-MM-dd");
-            ViewData["Availability"] = availability;
 
+            // Build category dropdown
             ViewBag.CategoryList = new SelectList(
                 Enum.GetValues(typeof(SessionCategory))
                     .Cast<SessionCategory>()
@@ -49,11 +49,13 @@ namespace MediBook.Controllers
                 "Text",
                 selectedCategory);
 
+            // Start with the base query
             var reservations = _context.Reservations
                 .Include(r => r.Facility)
                 .Include(r => r.MedicalSession)
                 .AsQueryable();
 
+            // Filter by reservation ID or session name
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
                 var term = searchQuery.Trim();
@@ -64,6 +66,7 @@ namespace MediBook.Controllers
                     (r.MedicalSession != null && r.MedicalSession.Name.Contains(term)));
             }
 
+            // Filter by session category
             if (!string.IsNullOrWhiteSpace(selectedCategory) &&
                 Enum.TryParse<SessionCategory>(selectedCategory, out var categoryValue))
             {
@@ -72,18 +75,21 @@ namespace MediBook.Controllers
                     r.MedicalSession.Category == categoryValue);
             }
 
+            // Filter from selected start date
             if (startDate.HasValue)
             {
                 var from = startDate.Value.Date;
                 reservations = reservations.Where(r => r.StartDate.Date >= from);
             }
 
+            // Filter up to selected end date
             if (endDate.HasValue)
             {
                 var to = endDate.Value.Date.AddDays(1).AddTicks(-1);
                 reservations = reservations.Where(r => r.EndDate <= to);
             }
 
+            // If both dates are provided, ensure reservation overlaps the selected range
             if (startDate.HasValue && endDate.HasValue)
             {
                 var from = startDate.Value;
@@ -92,36 +98,6 @@ namespace MediBook.Controllers
                 reservations = reservations.Where(r =>
                     r.StartDate < to &&
                     r.EndDate > from);
-            }
-
-            if (!string.IsNullOrWhiteSpace(availability))
-            {
-                availability = availability.Trim().ToLower();
-
-                if (startDate.HasValue && endDate.HasValue)
-                {
-                    var from = startDate.Value;
-                    var to = endDate.Value.Date.AddDays(1).AddTicks(-1);
-
-                    if (availability == "available")
-                    {
-                        reservations = reservations.Where(r =>
-                            !_context.Reservations.Any(x =>
-                                x.FacilityId == r.FacilityId &&
-                                x.ReservationId != r.ReservationId &&
-                                x.StartDate < to &&
-                                x.EndDate > from));
-                    }
-                    else if (availability == "unavailable")
-                    {
-                        reservations = reservations.Where(r =>
-                            _context.Reservations.Any(x =>
-                                x.FacilityId == r.FacilityId &&
-                                x.ReservationId != r.ReservationId &&
-                                x.StartDate < to &&
-                                x.EndDate > from));
-                    }
-                }
             }
 
             return View(await reservations.ToListAsync());
