@@ -1,4 +1,5 @@
-﻿@model IEnumerable<MediBook.Models.MedicalSession>
+﻿@model MediBook.ViewModels.MedicalSessionFilterViewModel
+@using MediBook.Models
 
 @{
     ViewData["Title"] = "Medical Sessions";
@@ -18,12 +19,181 @@
 <!-- Main Content -->
 <div class="container section-padding">
 
-    <!-- Toolbar -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <!-- ── Filter Panel ── -->
+    <div class="filter-panel fade-in-up">
+        <div class="filter-panel-header">
+            <span class="filter-panel-title">
+                <i class="fas fa-filter"></i> Filter Sessions
+            </span>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchText) ||
+                 Model.SelectedCategory.HasValue ||
+                 Model.StartDateFrom.HasValue ||
+                 Model.EndDateTo.HasValue)
+            {
+                <a asp-action="Index" class="filter-clear-link">
+                    <i class="fas fa-times-circle"></i> Clear Filters
+                </a>
+            }
+        </div>
+
+        <form method="get" asp-action="Index" class="filter-form">
+            <div class="filter-grid">
+
+                <!-- Search Text -->
+                <div class="filter-field">
+                    <label class="filter-label">
+                        <i class="fas fa-search"></i> Search
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="fas fa-search filter-input-icon"></i>
+                        <input type="text" name="searchText"
+                               value="@Model.SearchText"
+                               placeholder="Name or description..."
+                               class="filter-input" />
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div class="filter-field">
+                    <label class="filter-label">
+                        <i class="fas fa-layer-group"></i> Category
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="fas fa-layer-group filter-input-icon"></i>
+                        <select name="category" class="filter-input filter-select">
+                            <option value="">All Categories</option>
+                            @foreach (var cat in Enum.GetValues<SessionCategory>())
+                            {
+                                <option value="@cat"
+                                        selected="@(Model.SelectedCategory == cat ? "selected" : null)">
+                                    @cat
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Start Date From -->
+                <div class="filter-field">
+                    <label class="filter-label">
+                        <i class="fas fa-calendar-day"></i> Start Date From
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="fas fa-calendar filter-input-icon"></i>
+                        <input type="date" name="startDateFrom"
+                               value="@Model.StartDateFrom?.ToString("yyyy-MM-dd")"
+                               class="filter-input" />
+                    </div>
+                </div>
+
+                <!-- End Date To -->
+                <div class="filter-field">
+                    <label class="filter-label">
+                        <i class="fas fa-calendar-check"></i> End Date To
+                    </label>
+                    <div class="filter-input-wrapper">
+                        <i class="fas fa-calendar-check filter-input-icon"></i>
+                        <input type="date" name="endDateTo"
+                               value="@Model.EndDateTo?.ToString("yyyy-MM-dd")"
+                               class="filter-input" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="filter-actions">
+                <button type="submit" class="btn-medibook-primary">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a asp-action="Index" class="btn-medibook-outline">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Badges -->
+    @{
+        bool hasFilters = !string.IsNullOrWhiteSpace(Model.SearchText) ||
+                          Model.SelectedCategory.HasValue ||
+                          Model.StartDateFrom.HasValue ||
+                          Model.EndDateTo.HasValue;
+    }
+    @if (hasFilters)
+    {
+        <div class="active-filters fade-in-up">
+            <span class="active-filters-label">
+                <i class="fas fa-filter me-1"></i> Active:
+            </span>
+
+            @if (!string.IsNullOrWhiteSpace(Model.SearchText))
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-search"></i> "@Model.SearchText"
+                    <a asp-action="Index"
+                       asp-route-category="@Model.SelectedCategory"
+                       asp-route-startDateFrom="@Model.StartDateFrom?.ToString("yyyy-MM-dd")"
+                       asp-route-endDateTo="@Model.EndDateTo?.ToString("yyyy-MM-dd")"
+                       class="filter-badge-remove" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            }
+
+            @if (Model.SelectedCategory.HasValue)
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-layer-group"></i> @Model.SelectedCategory
+                    <a asp-action="Index"
+                       asp-route-searchText="@Model.SearchText"
+                       asp-route-startDateFrom="@Model.StartDateFrom?.ToString("yyyy-MM-dd")"
+                       asp-route-endDateTo="@Model.EndDateTo?.ToString("yyyy-MM-dd")"
+                       class="filter-badge-remove" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            }
+
+            @if (Model.StartDateFrom.HasValue)
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-calendar-day"></i> From @Model.StartDateFrom.Value.ToString("dd MMM yyyy")
+                    <a asp-action="Index"
+                       asp-route-searchText="@Model.SearchText"
+                       asp-route-category="@Model.SelectedCategory"
+                       asp-route-endDateTo="@Model.EndDateTo?.ToString("yyyy-MM-dd")"
+                       class="filter-badge-remove" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            }
+
+            @if (Model.EndDateTo.HasValue)
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-calendar-check"></i> To @Model.EndDateTo.Value.ToString("dd MMM yyyy")
+                    <a asp-action="Index"
+                       asp-route-searchText="@Model.SearchText"
+                       asp-route-category="@Model.SelectedCategory"
+                       asp-route-startDateFrom="@Model.StartDateFrom?.ToString("yyyy-MM-dd")"
+                       class="filter-badge-remove" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            }
+        </div>
+    }
+
+    <!-- ── Toolbar ── -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 fade-in-up">
         <div>
             <span class="text-secondary" style="font-size:0.9rem;">
                 <i class="fas fa-list me-1" style="color:#4988C4;"></i>
-                @Model.Count() session(s) found
+                @Model.TotalCount session(s) found
+                @if (hasFilters)
+                {
+                    <span style="color:#4988C4; font-weight:500;"> — filtered results</span>
+                }
             </span>
         </div>
         <a asp-action="Create" class="btn-action-create">
@@ -31,23 +201,40 @@
         </a>
     </div>
 
-    @if (Model.Any())
+    <!-- ── Success / Error Alerts ── -->
+    @if (TempData["SuccessMessage"] != null)
     {
-        <div class="table-responsive">
+        <div class="alert-medibook alert-medibook-success fade-in-up">
+            <i class="fas fa-circle-check"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-medibook alert-medibook-error fade-in-up">
+            <i class="fas fa-circle-exclamation"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <!-- ── Table ── -->
+    @if (Model.Sessions.Any())
+    {
+        <div class="table-responsive fade-in-up">
             <table class="table medibook-table">
                 <thead>
                     <tr>
                         <th><i class="fas fa-image me-1"></i> Image</th>
-                        <th><i class="fas fa-tag me-1"></i> @Html.DisplayNameFor(m => m.Name)</th>
+                        <th><i class="fas fa-tag me-1"></i> Name</th>
                         <th><i class="fas fa-layer-group me-1"></i> Category</th>
                         <th><i class="fas fa-align-left me-1"></i> Description</th>
-                        <th><i class="fas fa-calendar-day me-1"></i> @Html.DisplayNameFor(m => m.StartDate)</th>
-                        <th><i class="fas fa-calendar-check me-1"></i> @Html.DisplayNameFor(m => m.EndDate)</th>
+                        <th><i class="fas fa-calendar-day me-1"></i> Start Date</th>
+                        <th><i class="fas fa-calendar-check me-1"></i> End Date</th>
                         <th style="text-align:center;"><i class="fas fa-sliders me-1"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.Sessions)
                     {
                         <tr>
                             <td>
@@ -57,9 +244,7 @@
                                      onerror="this.src='/images/placeholder-session.jpg'" />
                             </td>
                             <td>
-                                <span style="font-weight:600; color:#0F2854;">
-                                    @Html.DisplayFor(modelItem => item.Name)
-                                </span>
+                                <span style="font-weight:600; color:#0F2854;">@item.Name</span>
                             </td>
                             <td>
                                 @if (item.Category.HasValue)
@@ -70,60 +255,67 @@
                                 {
                                     <span style="color:#94a3b8; font-size:0.88rem;">Not set</span>
                                 }
-                        </td>
-                        <td>
-                            <span style="color:#64748b; font-size:0.88rem;">
-                                @(string.IsNullOrEmpty(item.Description) ? "—" :
-                                                            (item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description))
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge-capacity">
-                            @item.StartDate.ToString("dd MMM yyyy")
-                        </span>
-                        <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">
-                            @item.StartDate.ToString("HH:mm")
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge-capacity">
-                            @item.EndDate.ToString("dd MMM yyyy")
-                        </span>
-                        <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">
-                            @item.EndDate.ToString("HH:mm")
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex gap-2 justify-content-center flex-nowrap">
-                            <a asp-action="Details" asp-route-id="@item.SessionId"
-                               class="btn-action btn-action-details">
-                                <i class="fas fa-eye"></i> Details
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@item.SessionId"
-                               class="btn-action btn-action-edit">
-                                <i class="fas fa-pen"></i> Edit
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.SessionId"
-                               class="btn-action btn-action-delete">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                                }
+                            </td>
+                            <td>
+                                <span style="color:#64748b; font-size:0.88rem;">
+                                    @(string.IsNullOrEmpty(item.Description) ? "—" :
+                                        (item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description))
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-capacity">@item.StartDate.ToString("dd MMM yyyy")</span>
+                                <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">
+                                    @item.StartDate.ToString("HH:mm")
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-capacity">@item.EndDate.ToString("dd MMM yyyy")</span>
+                                <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">
+                                    @item.EndDate.ToString("HH:mm")
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                                    <a asp-action="Details" asp-route-id="@item.SessionId"
+                                       class="btn-action btn-action-details">
+                                        <i class="fas fa-eye"></i> Details
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.SessionId"
+                                       class="btn-action btn-action-edit">
+                                        <i class="fas fa-pen"></i> Edit
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.SessionId"
+                                       class="btn-action btn-action-delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
     }
     else
     {
-        <div class="empty-state">
+        <div class="empty-state fade-in-up">
             <i class="fas fa-stethoscope"></i>
-            <h5>No Medical Sessions Found</h5>
-            <p>No sessions have been added yet. Get started by adding the first session.</p>
-            <a asp-action="Create" class="btn-action-create mt-2">
-                <i class="fas fa-plus"></i> Add First Session
-            </a>
+            @if (hasFilters)
+            {
+                <h5>No Sessions Match Your Filters</h5>
+                <p>Try adjusting or clearing your filters to see more results.</p>
+                <a asp-action="Index" class="btn-action-create mt-2">
+                    <i class="fas fa-rotate-left"></i> Clear All Filters
+                </a>
+            }
+            else
+            {
+                <h5>No Medical Sessions Found</h5>
+                <p>No sessions have been added yet. Get started by adding the first session.</p>
+                <a asp-action="Create" class="btn-action-create mt-2">
+                    <i class="fas fa-plus"></i> Add First Session
+                </a>
+            }
         </div>
     }
 </div>

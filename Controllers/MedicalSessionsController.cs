@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MediBook.Data;
 using MediBook.Models;
 using MediBook.Services;
+using MediBook.ViewModels;
 
 /*
 ==============================Code Attribution==================================
@@ -17,7 +18,7 @@ namespace MediBook.Controllers
 {
     // Handles all CRUD operations for MedicalSession records.
     // Images are stored in Azure Blob Storage via BlobService.
-    // SessionCategory is used to support filtering and classification.
+    // Index supports advanced filtering by text, category, and date range.
     public class MedicalSessionsController : Controller
     {
         private readonly MediBookDbContext _context;
@@ -30,9 +31,56 @@ namespace MediBook.Controllers
         }
 
         // GET: MedicalSessions
-        public async Task<IActionResult> Index()
+        // Supports optional query parameters: searchText, category, startDateFrom, endDateTo
+        public async Task<IActionResult> Index(
+            string? searchText,
+            SessionCategory? category,
+            DateTime? startDateFrom,
+            DateTime? endDateTo)
         {
-            return View(await _context.MedicalSessions.ToListAsync());
+            // Start with the full unfiltered session list
+            var query = _context.MedicalSessions.AsQueryable();
+
+            // Apply free-text filter on name or description (case-insensitive)
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                var term = searchText.Trim().ToLower();
+                query = query.Where(s =>
+                    s.Name.ToLower().Contains(term) ||
+                    (s.Description != null && s.Description.ToLower().Contains(term)));
+            }
+
+            // Apply session category filter
+            if (category.HasValue)
+            {
+                query = query.Where(s => s.Category == category.Value);
+            }
+
+            // Apply start date lower bound (sessions starting on or after this date)
+            if (startDateFrom.HasValue)
+            {
+                query = query.Where(s => s.StartDate >= startDateFrom.Value);
+            }
+
+            // Apply end date upper bound (sessions ending on or before this date)
+            if (endDateTo.HasValue)
+            {
+                // Include the full day by pushing to end of day
+                var endOfDay = endDateTo.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(s => s.EndDate <= endOfDay);
+            }
+
+            // Build and return the ViewModel
+            var viewModel = new MedicalSessionFilterViewModel
+            {
+                Sessions = await query.OrderBy(s => s.StartDate).ToListAsync(),
+                SearchText = searchText,
+                SelectedCategory = category,
+                StartDateFrom = startDateFrom,
+                EndDateTo = endDateTo
+            };
+
+            return View(viewModel);
         }
 
         // GET: MedicalSessions/Details/5
@@ -197,7 +245,8 @@ namespace MediBook.Controllers
             if (session.Reservations.Any())
             {
                 TempData["ErrorMessage"] =
-                    $"Cannot delete '{session.Name}' because it has {session.Reservations.Count} active reservation(s). Please remove all linked reservations before deleting this session.";
+                    $"Cannot delete '{session.Name}' because it has {session.Reservations.Count} active reservation(s). " +
+                    "Please remove all linked reservations before deleting this session.";
                 return RedirectToAction(nameof(Delete), new { id });
             }
 

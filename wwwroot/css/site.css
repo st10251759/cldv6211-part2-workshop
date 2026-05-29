@@ -1271,3 +1271,245 @@ img {
         padding: 1.25rem;
     }
 }
+
+/* ============================================================
+   Filter Panel — MedicalSessions & Reservations Index
+============================================================ */
+
+.filter-panel {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(15, 40, 84, 0.07);
+    border: 1px solid rgba(189, 232, 245, 0.4);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.filter-panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0F2854;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .filter-panel-title i {
+        color: #4988C4;
+        font-size: 0.9rem;
+    }
+
+.filter-clear-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.25s ease;
+    opacity: 0.8;
+}
+
+    .filter-clear-link:hover {
+        opacity: 1;
+        color: #b91c1c;
+        transform: translateX(-2px);
+    }
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (max-width: 991px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #0F2854;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+    .filter-label i {
+        color: #4988C4;
+        font-size: 0.72rem;
+    }
+
+.filter-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filter-input-icon {
+    position: absolute;
+    left: 12px;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: #334155;
+    background: #f8faff;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+    .filter-input:focus {
+        border-color: #4988C4;
+        box-shadow: 0 0 0 3px rgba(73, 136, 196, 0.15);
+        background: #fff;
+        outline: none;
+    }
+
+    .filter-input::placeholder {
+        color: #b0bac4;
+    }
+
+.filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234988C4' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ── Active Filter Badges ── */
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.active-filters-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #BDE8F5, #d4eef9);
+    color: #0F2854;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 10px 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(73, 136, 196, 0.25);
+}
+
+    .filter-badge i {
+        color: #4988C4;
+        font-size: 0.72rem;
+    }
+
+.filter-badge-remove {
+    width: 18px;
+    height: 18px;
+    background: rgba(15, 40, 84, 0.12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0F2854;
+    font-size: 0.62rem;
+    transition: all 0.2s ease;
+    margin-left: 2px;
+}
+
+    .filter-badge-remove:hover {
+        background: #dc2626;
+        color: #fff;
+        transform: scale(1.15);
+    }
+
+/* ── Alerts ── */
+.alert-medibook {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+}
+
+    .alert-medibook i {
+        font-size: 1.05rem;
+        flex-shrink: 0;
+    }
+
+.alert-medibook-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+    .alert-medibook-success i {
+        color: #16a34a;
+    }
+
+.alert-medibook-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+    .alert-medibook-error i {
+        color: #dc2626;
+    }
