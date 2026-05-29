@@ -1513,3 +1513,112 @@ img {
     .alert-medibook-error i {
         color: #dc2626;
     }
+
+/* ============================================================
+   Advanced Filter Panel
+============================================================ */
+.filter-panel {
+    background: #ffffff;
+    border: 1px solid rgba(73, 136, 196, 0.14);
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(15, 40, 84, 0.08);
+}
+
+.filter-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.filter-panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: #0F2854;
+    font-weight: 700;
+}
+
+.filter-panel-subtitle {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.filter-label {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0F2854;
+}
+
+.filter-input {
+    border-radius: 12px;
+    border: 1px solid #dbeafe;
+    background: #f8fbff;
+    min-height: 46px;
+    transition: all 0.25s ease;
+}
+
+    .filter-input:focus {
+        border-color: #4988C4;
+        box-shadow: 0 0 0 0.2rem rgba(73, 136, 196, 0.18);
+        background: #ffffff;
+    }
+
+.filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.active-filters-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #0F2854;
+}
+
+.filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: #E8F4FB;
+    color: #1C4D8D;
+    border: 1px solid rgba(73, 136, 196, 0.18);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.alert-medibook {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.alert-medibook-success {
+    background: #edfdf3;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+.alert-medibook-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fecaca;
+}

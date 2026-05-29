@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MediBook.Data;
 using MediBook.Models;
 using MediBook.Services;
+using MediBook.ViewModels;
 
 /*
 ==============================Code Attribution==================================
@@ -17,6 +18,7 @@ namespace MediBook.Controllers
 {
     // Handles all CRUD operations for Facility records.
     // Images are stored in Azure Blob Storage via BlobService.
+    // Index supports advanced filtering by text and availability within a selected date/time range.
     public class FacilitiesController : Controller
     {
         private readonly MediBookDbContext _context;
@@ -29,9 +31,74 @@ namespace MediBook.Controllers
         }
 
         // GET: Facilities
-        public async Task<IActionResult> Index()
+        // Supports filtering by search text and availability in a selected date/time range.
+        public async Task<IActionResult> Index(
+            string? searchText,
+            string? availability,
+            DateTime? startDateTime,
+            DateTime? endDateTime)
         {
-            return View(await _context.Facilities.ToListAsync());
+            var query = _context.Facilities
+                .Include(f => f.Reservations)
+                .AsQueryable();
+
+            // Free-text search on facility fields
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                var term = searchText.Trim().ToLower();
+
+                query = query.Where(f =>
+                    f.Name.ToLower().Contains(term) ||
+                    f.Location.ToLower().Contains(term) ||
+                    (f.Description != null && f.Description.ToLower().Contains(term)));
+            }
+
+            // Only apply availability filtering if both dates are provided and valid
+            if (startDateTime.HasValue && endDateTime.HasValue)
+            {
+                if (startDateTime.Value < endDateTime.Value)
+                {
+                    // A reservation overlaps when:
+                    // existing.Start < selected.End && existing.End > selected.Start
+                    if (!string.IsNullOrWhiteSpace(availability))
+                    {
+                        var normalizedAvailability = availability.Trim().ToLower();
+
+                        if (normalizedAvailability == "available")
+                        {
+                            query = query.Where(f =>
+                                !f.Reservations.Any(r =>
+                                    r.StartDate < endDateTime.Value &&
+                                    r.EndDate > startDateTime.Value));
+                        }
+                        else if (normalizedAvailability == "unavailable")
+                        {
+                            query = query.Where(f =>
+                                f.Reservations.Any(r =>
+                                    r.StartDate < endDateTime.Value &&
+                                    r.EndDate > startDateTime.Value));
+                        }
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("endDateTime",
+                        "End date/time must be after the start date/time.");
+                }
+            }
+
+            var viewModel = new FacilityFilterViewModel
+            {
+                Facilities = await query
+                    .OrderBy(f => f.Name)
+                    .ToListAsync(),
+                SearchText = searchText,
+                Availability = availability,
+                StartDateTime = startDateTime,
+                EndDateTime = endDateTime
+            };
+
+            return View(viewModel);
         }
 
         // GET: Facilities/Details/5

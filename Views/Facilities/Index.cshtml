@@ -1,7 +1,13 @@
-﻿@model IEnumerable<MediBook.Models.Facility>
+﻿@model MediBook.ViewModels.FacilityFilterViewModel
 
 @{
     ViewData["Title"] = "Facilities";
+
+    bool hasFilters =
+        !string.IsNullOrWhiteSpace(Model.SearchText) ||
+        !string.IsNullOrWhiteSpace(Model.Availability) ||
+        Model.StartDateTime.HasValue ||
+        Model.EndDateTime.HasValue;
 }
 
 <!-- Page Header -->
@@ -18,12 +24,133 @@
 <!-- Main Content -->
 <div class="container section-padding">
 
+    <!-- Filter Panel -->
+    <div class="filter-panel mb-4">
+        <div class="filter-panel-header">
+            <div>
+                <h5 class="filter-panel-title mb-1">
+                    <i class="fas fa-filter me-2"></i>Advanced Facility Filters
+                </h5>
+                <p class="filter-panel-subtitle mb-0">
+                    Search facilities and check whether they are available for a selected booking period.
+                </p>
+            </div>
+        </div>
+
+        <form method="get" asp-action="Index" class="filter-form">
+            <div class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                    <label for="searchText" class="filter-label">
+                        <i class="fas fa-magnifying-glass me-1"></i> Search Text
+                    </label>
+                    <input type="text"
+                           id="searchText"
+                           name="searchText"
+                           value="@Model.SearchText"
+                           class="form-control filter-input"
+                           placeholder="Search by name, location, or description" />
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label for="availability" class="filter-label">
+                        <i class="fas fa-circle-check me-1"></i> Availability
+                    </label>
+                    <select id="availability" name="availability" class="form-select filter-input">
+                        <option value="">All Facilities</option>
+                        <option value="available" selected="@(Model.Availability == "available")">Available</option>
+                        <option value="unavailable" selected="@(Model.Availability == "unavailable")">Unavailable</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label for="startDateTime" class="filter-label">
+                        <i class="fas fa-calendar-day me-1"></i> Start Date & Time
+                    </label>
+                    <input type="datetime-local"
+                           id="startDateTime"
+                           name="startDateTime"
+                           value="@(Model.StartDateTime?.ToString("yyyy-MM-ddTHH:mm"))"
+                           class="form-control filter-input" />
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label for="endDateTime" class="filter-label">
+                        <i class="fas fa-calendar-check me-1"></i> End Date & Time
+                    </label>
+                    <input type="datetime-local"
+                           id="endDateTime"
+                           name="endDateTime"
+                           value="@(Model.EndDateTime?.ToString("yyyy-MM-ddTHH:mm"))"
+                           class="form-control filter-input" />
+                </div>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert-medibook alert-medibook-error mt-3 mb-0">
+                    <i class="fas fa-circle-exclamation"></i>
+                    <span>@Html.ValidationSummary(false, "", new { @class = "mb-0" })</span>
+                </div>
+            }
+
+            <div class="filter-actions mt-4">
+                <button type="submit" class="btn-action-create">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <a asp-action="Index" class="btn-medibook-outline">
+                    <i class="fas fa-rotate-left"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    @if (hasFilters)
+    {
+        <div class="active-filters mb-4">
+            <span class="active-filters-label">
+                <i class="fas fa-sliders me-1"></i> Active Filters:
+            </span>
+
+            @if (!string.IsNullOrWhiteSpace(Model.SearchText))
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-magnifying-glass"></i>
+                    Search: @Model.SearchText
+                </span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Availability))
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-circle-check"></i>
+                    Availability: @Model.Availability
+                </span>
+            }
+
+            @if (Model.StartDateTime.HasValue)
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-calendar-day"></i>
+                    From: @Model.StartDateTime.Value.ToString("dd MMM yyyy HH:mm")
+                </span>
+            }
+
+            @if (Model.EndDateTime.HasValue)
+            {
+                <span class="filter-badge">
+                    <i class="fas fa-calendar-check"></i>
+                    To: @Model.EndDateTime.Value.ToString("dd MMM yyyy HH:mm")
+                </span>
+            }
+        </div>
+    }
+
     <!-- Toolbar -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <span class="text-secondary" style="font-size:0.9rem;">
                 <i class="fas fa-list me-1" style="color:#4988C4;"></i>
-                @Model.Count() facility/facilities found
+                @Model.TotalCount facility/facilities found
             </span>
         </div>
         <a asp-action="Create" class="btn-action-create">
@@ -31,22 +158,38 @@
         </a>
     </div>
 
-    @if (Model.Any())
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-medibook alert-medibook-success mb-4">
+            <i class="fas fa-circle-check"></i>
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-medibook alert-medibook-error mb-4">
+            <i class="fas fa-circle-exclamation"></i>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    @if (Model.Facilities.Any())
     {
         <div class="table-responsive">
             <table class="table medibook-table">
                 <thead>
                     <tr>
                         <th><i class="fas fa-image me-1"></i> Image</th>
-                        <th><i class="fas fa-tag me-1"></i> @Html.DisplayNameFor(m => m.Name)</th>
-                        <th><i class="fas fa-location-dot me-1"></i> @Html.DisplayNameFor(m => m.Location)</th>
+                        <th><i class="fas fa-tag me-1"></i> Name</th>
+                        <th><i class="fas fa-location-dot me-1"></i> Location</th>
                         <th><i class="fas fa-align-left me-1"></i> Description</th>
-                        <th><i class="fas fa-users me-1"></i> @Html.DisplayNameFor(m => m.Capacity)</th>
+                        <th><i class="fas fa-users me-1"></i> Capacity</th>
                         <th style="text-align:center;"><i class="fas fa-sliders me-1"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.Facilities)
                     {
                         <tr>
                             <td>
@@ -57,7 +200,7 @@
                             </td>
                             <td>
                                 <span style="font-weight:600; color:#0F2854;">
-                                    @Html.DisplayFor(modelItem => item.Name)
+                                    @item.Name
                                 </span>
                             </td>
                             <td>
@@ -70,8 +213,9 @@
                                                                         </td>
                                                                         <td>
                                                                             <span style="color:#64748b; font-size:0.88rem;">
-                                    @(string.IsNullOrEmpty(item.Description) ? "—" :
-                                                                (item.Description.Length > 55
+                                    @(string.IsNullOrEmpty(item.Description)
+                                                                ? "—"
+                                                                : (item.Description.Length > 55
                                                                 ? item.Description.Substring(0, 55) + "..."
                                                                 : item.Description))
                         </span>
@@ -108,9 +252,12 @@
         <div class="empty-state">
             <i class="fas fa-hospital"></i>
             <h5>No Facilities Found</h5>
-            <p>No facilities have been added yet. Get started by registering the first facility.</p>
-            <a asp-action="Create" class="btn-action-create mt-2">
-                <i class="fas fa-plus"></i> Add First Facility
+            <p>
+                No facilities matched the selected filters. Try changing the search text,
+                availability, or selected date/time range.
+            </p>
+            <a asp-action="Index" class="btn-action-create mt-2">
+                <i class="fas fa-rotate-left"></i> Clear Filters
             </a>
         </div>
     }
