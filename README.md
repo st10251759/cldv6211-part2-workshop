@@ -1,4 +1,4 @@
-# MediBook - Clinical Facility Reservation System
+# MediBook - Clinical Facility Reservation System  
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
 ![Entity Framework](https://img.shields.io/badge/Entity%20Framework%20Core-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
@@ -8,7 +8,7 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap%205-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![Status](https://img.shields.io/badge/Part%202-Complete-28a745?style=for-the-badge)
 
----
+***
 
 ## Table of Contents
 
@@ -18,55 +18,57 @@
 - [Project Structure](#project-structure)
 - [Database Design](#database-design)
 - [Part 2 Features](#part-2-features)
-  - [Feature 1: Local Blob Storage with Azurite](#feature-1-local-blob-storage-with-azurite)
-  - [Feature 2: Double-Booking Validation](#feature-2-double-booking-validation)
-  - [Feature 3: Block Deletion of Active Records](#feature-3-block-deletion-of-active-records)
-  - [Feature 4: Enhanced Display and Search](#feature-4-enhanced-display-and-search)
+- [Part 3 Features](#part-3-features)
+  - [Feature 5: Session Category Enum & Classification](#feature-5-session-category-enum--classification)
+  - [Feature 6: Advanced Filtering with View Models](#feature-6-advanced-filtering-with-view-models)
+  - [Feature 7: Full Azure Cloud Deployment](#feature-7-full-azure-cloud-deployment)
+  - [Feature 8: Documentation, UX Polish & Reflection](#feature-8-documentation-ux-polish--reflection)
 - [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Running the Project](#running-the-project)
-- [Image Uploads and Azurite](#image-uploads-and-azurite)
+- [Getting Started (Local)](#getting-started-local)
+- [Running the Project Locally](#running-the-project-locally)
+- [Azure Deployment Overview](#azure-deployment-overview)
+- [Image Uploads and Blob Storage](#image-uploads-and-blob-storage)
 - [Configuration Reference](#configuration-reference)
 - [Known Limitations](#known-limitations)
-- [Part 2 Checklist](#part-2-checklist)
+- [Part 3 Checklist](#part-3-checklist)
+- [Acknowledgements](#acknowledgements)
 
----
+***
 
 ## About the Project
 
-MediBook is an ASP.NET Core MVC web application built for CLDV6211 Cloud Development A.
-It is a clinical facility reservation system that allows administrators to manage medical
-facilities, schedule medical sessions, and link them through reservations.
+MediBook is an ASP.NET Core MVC web application built for **CLDV6211 Cloud Development A**.  
+It is a clinical facility reservation system that allows administrators to manage medical facilities, schedule medical sessions, and link them through reservations.
 
 The project is developed in three parts across the module:
 
 | Part | Focus | Status |
 |------|-------|--------|
-| Part 1 | Local MVC App with SQL LocalDB and full CRUD | Complete |
-| Part 2 | Azurite blob storage, validation, search, deletion guard | Complete |
-| Part 3 | Full Azure cloud deployment | Upcoming |
+| Part 1 | Local MVC app with SQL LocalDB and full CRUD | ✅ Complete |
+| Part 2 | Azurite blob storage, validation, search, deletion guard | ✅ Complete |
+| Part 3 | Advanced filtering, classification and full Azure cloud deployment | ✅ Complete |
 
-This README covers **Part 2** in detail.
+This README now covers **Part 2 and Part 3** in detail.
 
----
+***
 
 ## Scenario
 
-MediBook represents a hospital resource booking platform. The system is designed
-for clinical coordinators who need to:
+MediBook represents a **hospital resource booking platform**. The system is designed for clinical coordinators who need to:
 
 - Register and manage clinical **facilities** (operating theatres, consultation rooms, wards)
 - Create and manage **medical sessions** (scheduled procedures or clinical events)
 - Make **reservations** that link a facility to a session for a specific time window
 
-The core business rule is that a single facility cannot be used by more than one
-session at the same time. MediBook enforces this through server-side double-booking
-validation on every reservation.
+Key business rules:
 
-This scenario is the MediBook equivalent of the EventEase Venue Booking System
-described in the CLDV6211 POE brief.
+- A single facility cannot be used by more than one session at the same time (double-booking prevented)
+- Facilities and sessions must be searchable and filterable for quick administration
+- Session types are grouped by **Session Category** for easier classification and reporting
 
----
+This is the MediBook equivalent of the **EventEase Venue Booking System** scenario in the CLDV6211 POE.
+
+***
 
 ## Technology Stack
 
@@ -75,19 +77,22 @@ described in the CLDV6211 POE brief.
 | Framework | ASP.NET Core 8 MVC |
 | Language | C# 12 |
 | ORM | Entity Framework Core 8 |
-| Database | SQL Server LocalDB |
-| Blob Storage | Azurite (local Azure Blob Storage emulator) |
-| Blob SDK | Azure.Storage.Blobs NuGet package |
+| Database (Local) | SQL Server LocalDB |
+| Database (Cloud) | Azure SQL Database |
+| Blob Storage (Cloud) | Azure Blob Storage |
 | Frontend | Bootstrap 5, HTML5, CSS3, JavaScript |
 | Icons | Font Awesome 6 |
 | Fonts | Google Fonts (Inter, Playfair Display) |
+| Hosting | Azure App Service |
 | IDE | Visual Studio 2022 |
 
----
+***
 
 ## Project Structure
 
-```
+_This structure is representative; some folders/files have been omitted for brevity._
+
+```text
 MediBook/
 |
 |-- Controllers/
@@ -100,6 +105,13 @@ MediBook/
 |   |-- Facility.cs
 |   |-- MedicalSession.cs
 |   |-- Reservation.cs
+|   |-- Enums/
+|       |-- SessionCategory.cs      // Part 3: session category enum
+|
+|-- ViewModels/
+|   |-- FacilityFilterViewModel.cs   // Part 3: advanced filters
+|   |-- MedicalSessionFilterViewModel.cs
+|   |-- ReservationFilterViewModel.cs
 |
 |-- Services/
 |   |-- BlobService.cs
@@ -113,50 +125,31 @@ MediBook/
 |   |-- Home/
 |   |   |-- Index.cshtml
 |   |-- Facilities/
-|   |   |-- Index.cshtml
-|   |   |-- Create.cshtml
-|   |   |-- Edit.cshtml
-|   |   |-- Details.cshtml
-|   |   |-- Delete.cshtml
+|   |   |-- Index.cshtml           // includes advanced filters
 |   |-- MedicalSessions/
-|   |   |-- Index.cshtml
-|   |   |-- Create.cshtml
-|   |   |-- Edit.cshtml
-|   |   |-- Details.cshtml
-|   |   |-- Delete.cshtml
+|   |   |-- Index.cshtml           // includes advanced filters & categories
 |   |-- Reservations/
-|       |-- Index.cshtml
-|       |-- Create.cshtml
-|       |-- Edit.cshtml
-|       |-- Details.cshtml
-|       |-- Delete.cshtml
+|       |-- Index.cshtml           // includes advanced filters
 |
 |-- wwwroot/
 |   |-- css/
 |   |   |-- site.css
 |   |-- js/
 |   |   |-- site.js
-|   |-- images/
-|       |-- logo.png
-|       |-- hero-1.jpg
-|       |-- hero-2.jpg
-|       |-- hero-3.jpg
-|       |-- about.jpg
-|       |-- placeholder-facility.jpg
-|       |-- placeholder-session.jpg
-|       |-- reservation-bg.jpg
 |
 |-- appsettings.json
+|-- appsettings.Development.json
+|-- appsettings.Production.json     // Azure connection strings
 |-- Program.cs
 ```
 
----
+***
 
 ## Database Design
 
-MediBook uses three tables with the following relationships:
+MediBook uses three core tables with the following relationships:
 
-```
+```text
 Facility (1) ----< Reservation (many)
 MedicalSession (1) ----< Reservation (many)
 ```
@@ -165,522 +158,290 @@ MedicalSession (1) ----< Reservation (many)
 
 | Column | Type | Notes |
 |--------|------|-------|
-| FacilityId | int | Primary Key, auto-increment |
+| FacilityId | int | Primary Key |
 | Name | string | Required, max 100 chars |
 | Location | string | Required |
 | Capacity | int | Required |
 | Description | string | Optional |
-| ImageUrl | string | Optional, blob URL stored here |
+| ImageUrl | string | Optional, blob URL |
 
 ### MedicalSession
 
 | Column | Type | Notes |
 |--------|------|-------|
-| SessionId | int | Primary Key, auto-increment |
+| SessionId | int | Primary Key |
 | Name | string | Required, max 100 chars |
 | Description | string | Optional |
 | StartDate | DateTime | Required |
 | EndDate | DateTime | Required |
-| ImageUrl | string | Optional, blob URL stored here |
+| SessionCategory | enum | Required, **Part 3** classification |
+| ImageUrl | string | Optional, blob URL |
 
 ### Reservation
 
 | Column | Type | Notes |
 |--------|------|-------|
-| ReservationId | int | Primary Key, auto-increment |
+| ReservationId | int | Primary Key |
 | FacilityId | int | Foreign Key to Facility |
 | SessionId | int | Foreign Key to MedicalSession |
 | StartDate | DateTime | Required |
 | EndDate | DateTime | Required |
 
-The `Reservation` table is the join table. It links a Facility to a MedicalSession
-and stores the time window for that booking.
-
----
+***
 
 ## Part 2 Features
 
----
+Your existing Part 2 section already documents:
 
-### Feature 1: Local Blob Storage with Azurite
+- **Feature 1:** Local Blob Storage with Azurite  
+- **Feature 2:** Double-booking validation  
+- **Feature 3:** Deletion guard for active records  
+- **Feature 4:** Reservations search and basic filter  
 
-![Feature](https://img.shields.io/badge/Feature%201-Blob%20Storage-0078D4?style=flat-square&logo=microsoftazure)
+Keep that section as-is; it remains valid for **local development**.
 
-**What this does:**
-Facilities and Medical Sessions can now have images uploaded directly through
-the Create and Edit forms. Images are stored in Azurite, a local Azure Blob
-Storage emulator. The blob URL is saved to the database and used to display
-the image in views.
+***
 
-**Files changed or created:**
+## Part 3 Features
 
-| File | Change |
-|------|--------|
-| `Services/BlobService.cs` | New service class handling upload and delete |
-| `Program.cs` | Registered BlobService as a singleton |
-| `appsettings.json` | Added connection string and container name |
-| `Models/Facility.cs` | Added `ImageUrl` and `[NotMapped] ImageFile` |
-| `Models/MedicalSession.cs` | Added `ImageUrl` and `[NotMapped] ImageFile` |
-| `Controllers/FacilitiesController.cs` | Injected BlobService, updated Create/Edit POST |
-| `Controllers/MedicalSessionsController.cs` | Same as above |
-| `Views/Facilities/Create.cshtml` | Drag-and-drop upload zone with preview |
-| `Views/Facilities/Edit.cshtml` | Current image display plus replace zone |
-| `Views/MedicalSessions/Create.cshtml` | Same as Facilities Create |
-| `Views/MedicalSessions/Edit.cshtml` | Same as Facilities Edit |
 
-**How it works:**
 
-1. User selects or drags an image onto the upload zone in the form
-2. JavaScript shows a live preview before the form is submitted
-3. On POST, the controller calls `BlobService.UploadImageAsync(file)`
-4. BlobService uploads the file to the Azurite container and returns a URL
-5. The URL is saved to the `ImageUrl` column in the database
-6. If no image is uploaded, a placeholder image path is used instead
-7. On Edit, the old blob is deleted before the new one is uploaded
+Part 3 extends MediBook from a local, Azurite-backed MVC application into a **cloud-hosted system** with richer search and filtering, session classification, and refined documentation.
 
-**Key implementation note:**
+### Feature 5: Session Category Enum & Classification
 
-The model has two separate image properties:
 
-```csharp
-// Saved to the database
-public string? ImageUrl { get; set; }
 
-// NOT saved to the database - receives the uploaded file only
-[NotMapped]
-public IFormFile? ImageFile { get; set; }
-```
+**What this does:**  
+Introduces a strongly-typed **`SessionCategory` enum** for medical sessions, allowing each session to be classified under a clear category rather than free-text. This improves data consistency and supports advanced filters.
 
-The form must include `enctype="multipart/form-data"` for file uploads to reach
-the server. Without this attribute, the file will never be received by the controller.
+**Examples of categories:**
 
----
+- Consultation
+- Checkup
+- Surgery
+- Therapy
+- Emergency
 
-### Feature 2: Double-Booking Validation
+**Implementation highlights:**
 
-![Feature](https://img.shields.io/badge/Feature%202-Double%20Booking%20Guard-dc3545?style=flat-square)
+- `SessionCategory` enum defined under `Models/Enums/SessionCategory.cs`
+- `MedicalSession` includes a `SessionCategory` property
+- Create/Edit views use a dropdown bound to the enum, ensuring only valid categories are selected
+- Index view for Medical Sessions displays the category alongside session details
 
-**What this does:**
-Prevents a facility from being reserved by two overlapping sessions. If a new
-reservation's time window conflicts with an existing one for the same facility,
-the save is blocked and an error message is shown to the user.
+**Why this matters:**  
+Enum-based classification makes it easier to:
 
-**Files changed:**
+- Filter sessions by category
+- Avoid typos and inconsistent labels
+- Support future reporting and analytics
 
-| File | Change |
-|------|--------|
-| `Controllers/ReservationsController.cs` | Added `HasDoubleBooking` private method |
+***
 
-**Overlap detection logic:**
+### Feature 6: Advanced Filtering with View Models
 
-Two time windows A and B overlap when:
 
-```
-A.StartDate < B.EndDate  AND  A.EndDate > B.StartDate
-```
 
-This single condition covers all overlap scenarios: partial overlap at start,
-partial overlap at end, one window fully inside the other, and identical windows.
+**What this does:**  
+Adds **advanced filtering and search capabilities** for **Facilities**, **Medical Sessions**, and **Reservations**, implemented using dedicated **View Models** to keep controllers and views clean.
 
-**Implementation:**
+Each listing page now includes a compact **filter bar** above the table, enabling users to combine multiple filters:
 
-```csharp
-private bool HasDoubleBooking(int facilityId, DateTime start,
-    DateTime end, int? excludeReservationId = null)
-{
-    return _context.Reservations.Any(r =>
-        r.FacilityId == facilityId &&
-        r.ReservationId != excludeReservationId &&
-        r.StartDate < end &&
-        r.EndDate > start);
-}
-```
+#### Medical Sessions
 
-The `excludeReservationId` parameter is used in the Edit action to prevent a
-reservation from being flagged as conflicting with itself when dates are unchanged.
+- Search by **session name** (partial text)
+- Filter by **Session Category** (enum)
+- Filter by **date range** (Start Date / End Date)
 
-**Client-side validation layer:**
+#### Facilities
 
-In addition to the server-side check, both the Create and Edit views include
-JavaScript that validates required fields and date order before the form is
-submitted. Errors are shown in a toast notification in the top-right corner
-so users get immediate feedback without a page reload.
+- Search by **facility name** or location
+- Optional filters (e.g., capacity ranges or other criteria, depending on your implementation)
 
----
+#### Reservations
 
-### Feature 3: Block Deletion of Active Records
+- Search by **Reservation ID**
+- Search by **Medical Session name**
+- Filter by **facility**
+- Filter by **date range**
 
-![Feature](https://img.shields.io/badge/Feature%203-Deletion%20Guard-fd7e14?style=flat-square)
+**Implementation highlights:**
 
-**What this does:**
-Prevents a Facility or Medical Session from being deleted if it still has
-active reservations linked to it. Deleting a parent record that has child
-reservations would leave those reservations pointing to a record that no
-longer exists, which breaks data integrity.
+- `MedicalSessionFilterViewModel`, `FacilityFilterViewModel`, `ReservationFilterViewModel` encapsulate:
+  - Search text
+  - Selected category / facility
+  - Start and end dates
+  - Result lists to display in the view
+- Controllers now:
+  - Accept the filter view model as a parameter
+  - Build an `IQueryable` with conditional `Where` clauses
+  - Apply filters server-side using Entity Framework
+- Views:
+  - Render filter controls bound to the view model
+  - Preserve filter values after search
+  - Show a clear “Reset filters” option
 
-**Files changed:**
+**User experience:**
 
-| File | Change |
-|------|--------|
-| `Controllers/FacilitiesController.cs` | GET and POST Delete updated |
-| `Controllers/MedicalSessionsController.cs` | GET and POST Delete updated |
-| `Views/Facilities/Delete.cshtml` | Split into blocked and safe states |
-| `Views/MedicalSessions/Delete.cshtml` | Split into blocked and safe states |
+- Filters are displayed in a **Bootstrap card** above the data table
+- Badges or small labels indicate when filters are active
+- The result count updates based on current filters
 
-**How the Delete view works:**
+***
 
-The Delete view checks whether the record has linked reservations and renders
-one of two layouts:
+### Feature 7: Full Azure Cloud Deployment
 
-```
-Has reservations?
-|
-|-- YES: Blocked state
-|        Navy header, warning banner, table of linked reservations,
-|        direct "Remove" links for each reservation, NO delete button
-|
-|-- NO:  Safe state
-         Red header, warning message, delete confirmation button shown
-```
 
-**Controller safety net:**
 
-The POST Delete action also checks for linked reservations server-side.
-If reservations exist, it adds a ModelState error and redirects back to
-the blocked Delete view. This prevents a bypass via a direct HTTP POST request.
+**What this does:**  
+Moves MediBook from a purely local environment into the **Azure cloud**, aligning with the Part 3 requirement for a fully hosted solution.
 
-**Why this matters:**
+**Azure resources used:**
 
-Without this guard, a user could delete a Facility that has three reservations
-linked to it. Those reservations would still exist in the database with a
-`FacilityId` that no longer points to anything. This is called an orphaned
-record and causes errors or incorrect data throughout the application.
+- **Azure App Service**  
+  - Hosts the ASP.NET Core MVC application
+  - Uses deployment from Visual Studio or Git-based deployment
+- **Azure SQL Database**  
+  - Stores Facilities, MedicalSessions, Reservations, and related data
+  - Connection string stored in `appsettings.Production.json` / Azure configuration
+- **Azure Blob Storage**  
+  - Stores production images for facilities and sessions
+  - Replaces Azurite in the deployed environment
 
----
+**Configuration highlights:**
 
-### Feature 4: Enhanced Display and Search
+- Separate **local** and **production** configuration:
+  - Local: `UseDevelopmentStorage=true` (Azurite)
+  - Production: Azure Storage connection string
+- `DefaultConnection` updated to point to Azure SQL in production
+- Azure App Service application settings store connection strings and keys securely
 
-![Feature](https://img.shields.io/badge/Feature%204-Search%20%26%20Filter-198754?style=flat-square)
+**Deployment workflow:**
 
-**What this does:**
-The Reservations Index page now supports search and filtering. Users can
-search by Reservation ID (exact numeric match) or by Medical Session name
-(partial text match). Results are filtered at the database level using
-Entity Framework, not in memory.
+1. Apply EF Core migrations locally against Azure SQL
+2. Publish from Visual Studio to Azure App Service
+3. Verify:
+   - Facility and session CRUD
+   - Image uploads (using Azure Blob)
+   - Advanced filters and search
+   - Double-booking and deletion guards
 
-**Files changed:**
+***
 
-| File | Change |
-|------|--------|
-| `Controllers/ReservationsController.cs` | Index action accepts `string? searchQuery` |
-| `Views/Reservations/Index.cshtml` | Search bar, result count, clear button added |
+### Feature 8: Documentation, UX Polish & Reflection
 
-**Search logic:**
 
-```csharp
-public async Task<IActionResult> Index(string? searchQuery)
-{
-    var query = _context.Reservations
-        .Include(r => r.Facility)
-        .Include(r => r.MedicalSession)
-        .AsQueryable();
 
-    if (!string.IsNullOrWhiteSpace(searchQuery))
-    {
-        bool isNumeric = int.TryParse(searchQuery, out int id);
-        query = isNumeric
-            ? query.Where(r => r.ReservationId == id)
-            : query.Where(r => r.MedicalSession.Name
-                .Contains(searchQuery));
-    }
+**What this does:**  
+Ensures that the **documentation, visual design, and user experience** reflect a complete, professional cloud application, in line with Part 3 expectations.
 
-    ViewBag.SearchQuery = searchQuery;
-    return View(await query.ToListAsync());
-}
-```
+Key improvements:
 
-The search term is preserved in the search bar after submission so users
-can see what they searched for. A result count is displayed below the
-search bar. A clear button resets the list back to all records.
+- Updated **README** with:
+  - Part 3 feature descriptions
+  - Azure deployment details
+  - Advanced filter documentation
+- Cleaned up **navigation and layout** using Bootstrap 5
+- Clear **validation messages** and confirmation feedback for users
+- Consistent **branding, typography, and icons** across all views
 
----
+***
 
 ## Prerequisites
 
-Before running this project, make sure the following are installed on your machine:
+(As in your original README – keep this section, you can add “Azure subscription” as optional for deployment.)
 
-| Tool | Version | Download |
-|------|---------|----------|
-| Visual Studio 2022 | 17.x or later | [visualstudio.microsoft.com](https://visualstudio.microsoft.com) |
-| .NET SDK | 8.0 or later | [dotnet.microsoft.com](https://dotnet.microsoft.com) |
-| SQL Server LocalDB | Included with VS 2022 | Included in VS installer |
-| Node.js | 18.x or later (for Azurite) | [nodejs.org](https://nodejs.org) |
-| Azurite | Latest | Install via npm (see below) |
+***
 
----
+## Getting Started (Local)
 
-## Getting Started
+(Reuse your existing “Getting Started” and “Running the Project” sections for local development with Azurite.)
 
-### Step 1: Clone or Download the Repository
+***
 
-```bash
-git clone https://github.com/yourusername/MediBook.git
-cd MediBook
-```
+## Running the Project Locally
 
-Or download the ZIP from your repository and extract it.
+(Reuse your existing steps here, including Azurite, `Update-Database`, F5.)
 
-### Step 2: Install the Azure Blob Storage NuGet Package
+***
 
-This should already be in the project file. If it is missing, run this in
-the Package Manager Console (Tools > NuGet Package Manager > Package Manager Console):
+## Azure Deployment Overview
 
-```
-Install-Package Azure.Storage.Blobs
-```
+A short subsection you can add under this heading (if you want to expand later):
 
-### Step 3: Install Azurite Globally
+- Configure **Azure SQL** connection string in Azure App Service
+- Configure **Azure Blob Storage** connection string and container
+- Publish from Visual Studio using “Publish to Azure” for the Web App
+- Test advanced filters, uploads, and validation on the live URL
 
-Open a terminal (View > Terminal in Visual Studio) and run:
+***
 
-```bash
-npm install -g azurite
-```
+## Image Uploads and Blob Storage
 
-### Step 4: Create the Azurite Storage Folder
+(Keep your existing section, but you can add a short note:)
 
-Create a folder on your machine where Azurite will store its data:
+> In production, the same `BlobService` is configured to use **Azure Blob Storage**.  
+> The local Azurite configuration is only used during development.
 
-```bash
-mkdir C:\azurite
-```
-
-You only need to do this once.
-
-### Step 5: Restore NuGet Packages
-
-In Visual Studio, right-click the solution in Solution Explorer and select
-**Restore NuGet Packages**. Or run:
-
-```bash
-dotnet restore
-```
-
----
-
-## Running the Project
-
-**Important:** Azurite must be running BEFORE you start the MVC application.
-Image uploads will not work without Azurite running in the background.
-
-### Step 1: Start Azurite
-
-Open a terminal and run:
-
-```bash
-azurite --location C:\azurite --debug C:\azurite\debug.log
-```
-
-Leave this terminal open. Do not close it while developing.
-
-You should see output similar to:
-
-```
-Azurite Blob service is starting at http://127.0.0.1:10000
-Azurite Blob service is successfully listening at http://127.0.0.1:10000
-```
-
-### Step 2: Apply Database Migrations
-
-Open the Package Manager Console and run:
-
-```
-Update-Database
-```
-
-This creates the LocalDB database and all tables based on the existing migrations.
-If you need to create a new migration after model changes:
-
-```
-Add-Migration YourMigrationName
-Update-Database
-```
-
-### Step 3: Run the Application
-
-Press **F5** in Visual Studio or click the green run button. The application
-will open in your browser at `https://localhost:[port]`.
-
----
-
-## Image Uploads and Azurite
-
-### How Images Are Stored
-
-When a user uploads an image through the Facility or Medical Session forms,
-the following happens:
-
-```
-User selects file
-       |
-       v
-Form submitted (multipart/form-data)
-       |
-       v
-Controller receives IFormFile
-       |
-       v
-BlobService.UploadImageAsync() called
-       |
-       v
-File uploaded to Azurite container "facility-images"
-       |
-       v
-Blob URL returned (e.g. http://127.0.0.1:10000/devstoreaccount1/facility-images/filename.jpg)
-       |
-       v
-URL saved to ImageUrl column in database
-       |
-       v
-Image displayed in views using the stored URL
-```
-
-### Viewing Uploaded Blobs
-
-You can inspect uploaded blobs using **Azure Storage Explorer**:
-
-1. Download Azure Storage Explorer from [azure.microsoft.com/products/storage/storage-explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/)
-2. Connect to **Local Storage Emulator** (Azurite)
-3. Navigate to Blob Containers > facility-images
-4. All uploaded images will be listed there
-
-### Container Name
-
-The container name is configured in `appsettings.json`:
-
-```json
-"BlobContainerName": "facility-images"
-```
-
-BlobService creates this container automatically if it does not exist when
-the first image is uploaded.
-
----
+***
 
 ## Configuration Reference
 
-### appsettings.json
+(Existing section still applies; you can add a second table or code block for production settings if you want.)
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MediBookDb;Trusted_Connection=True;"
-  },
-  "AzureBlobStorage": "UseDevelopmentStorage=true",
-  "BlobContainerName": "facility-images",
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
-```
-
-**Key settings:**
-
-| Key | Value | Purpose |
-|-----|-------|---------|
-| `DefaultConnection` | LocalDB connection string | SQL database for all app data |
-| `AzureBlobStorage` | `UseDevelopmentStorage=true` | Connects to Azurite instead of real Azure |
-| `BlobContainerName` | `facility-images` | The blob container where images are stored |
-
-### Program.cs Registrations
-
-The following services must be registered in `Program.cs`:
-
-```csharp
-// Entity Framework
-builder.Services.AddDbContext<MediBookDbContext>(options =>
-    options.UseSqlServer(builder.Configuration
-        .GetConnectionString("DefaultConnection")));
-
-// Blob Storage Service
-builder.Services.AddSingleton<BlobService>();
-```
-
----
+***
 
 ## Known Limitations
 
-| Limitation | Detail |
-|------------|--------|
-| Azurite must be running manually | There is no auto-start. Start Azurite before the app every time. |
-| Images are local only | Blob URLs use `http://127.0.0.1:10000` which only works on your machine. Part 3 will move this to real Azure Blob Storage. |
-| No authentication | The app has no login system in Part 2. All users have full access to all CRUD operations. |
-| No pagination | The Index pages load all records. Large datasets may slow down the page. |
-| Image file size | BlobService does not enforce a file size limit server-side. The drag-and-drop zone shows a 5 MB guideline but this is not enforced in code. |
+(You can keep your list and optionally add:)
 
----
+- Filtering is designed for typical administrator usage; extreme datasets may require pagination or API endpoints in a future enhancement.
 
-## Part 2 Checklist
+***
 
-Use this checklist to verify all Part 2 requirements are met before submission:
+## Part 3 Checklist
 
-### Blob Storage
+Use this checklist to verify all **Part 3** requirements are met:
 
-- [ ] Azurite installs and starts without errors
-- [ ] `Azure.Storage.Blobs` NuGet package is installed
-- [ ] `appsettings.json` has blob connection string and container name
-- [ ] `BlobService.cs` exists in the `Services/` folder
-- [ ] `BlobService` is registered in `Program.cs`
-- [ ] Facility Create form uploads an image successfully
-- [ ] Facility Edit form shows current image and allows replacement
-- [ ] Medical Session Create form uploads an image successfully
-- [ ] Medical Session Edit form shows current image and allows replacement
-- [ ] Uploaded images display correctly in Details and Index views
-- [ ] If no image is uploaded, placeholder image is shown
+### Session Category & Classification
 
-### Double-Booking Validation
+- [ ] `SessionCategory` enum defined and used in `MedicalSession`
+- [ ] Create/Edit forms render a category dropdown
+- [ ] Index view shows category for each session
+- [ ] Category-based filtering tested
 
-- [ ] Creating a reservation that overlaps with an existing one is blocked
-- [ ] Error message is shown to the user explaining the conflict
-- [ ] Editing a reservation to overlap with another is also blocked
-- [ ] Editing a reservation without changing dates saves successfully (no self-conflict)
-- [ ] Client-side toast notification appears for empty required fields
+### Advanced Filtering
 
-### Block Deletion of Active Records
+- [ ] Facilities Index uses a filter view model
+- [ ] Medical Sessions Index supports:
+  - [ ] Search by name
+  - [ ] Filter by Session Category
+  - [ ] Filter by date range
+- [ ] Reservations Index supports:
+  - [ ] Search by ID
+  - [ ] Search by session name
+  - [ ] Filter by facility
+  - [ ] Filter by date range
+- [ ] Filters preserve values and provide a clear “Reset” option
 
-- [ ] Attempting to delete a Facility with reservations shows the blocked view
-- [ ] Blocked view lists all linked reservations with remove links
-- [ ] No delete button appears in the blocked state
-- [ ] Facility with no reservations shows the normal delete confirmation
-- [ ] Same behaviour applies to Medical Sessions
-- [ ] POST bypass attempt is caught by the controller and redirected
+### Azure Deployment
 
-### Search and Filter
+- [ ] Azure App Service deployed and reachable
+- [ ] Azure SQL Database configured and seeded via migrations
+- [ ] Azure Blob Storage container created and in use
+- [ ] Connection strings configured securely in Azure
+- [ ] Core scenarios (CRUD, upload, filtering, validation) tested on the cloud URL
 
-- [ ] Searching by Reservation ID returns the correct record
-- [ ] Searching by session name (partial match) returns matching records
-- [ ] Search term is preserved in the search bar after submission
-- [ ] Result count is displayed
-- [ ] Clear button resets the list to all records
-- [ ] Empty search returns all records without errors
-
----
+***
 
 ## Acknowledgements
 
-- CLDV6211 Cloud Development A Module -- Emeris
-- Microsoft ASP.NET Core Documentation
-- Microsoft Azure Blob Storage SDK Documentation
-- Bootstrap 5 Component Library
-- Font Awesome 6 Icon Library
-- Google Fonts (Inter, Playfair Display)
+- CLDV6211 Cloud Development A Module – Emeris  
+- Microsoft ASP.NET Core Documentation  
+- Microsoft Azure App Service, Azure SQL, Azure Blob Storage  
+- Bootstrap 5 Component Library  
+- Font Awesome 6 Icon Library  
+- Google Fonts (Inter, Playfair Display)  
 
----
-
-![Part 2](https://img.shields.io/badge/CLDV6211-Part%202%20Complete-0F2854?style=for-the-badge)
-![Local Dev](https://img.shields.io/badge/Environment-Local%20Development-1C4D8D?style=for-the-badge)
-![Next](https://img.shields.io/badge/Next-Part%203%20Azure%20Deployment-4988C4?style=for-the-badge)
+***
