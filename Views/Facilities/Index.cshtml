@@ -185,12 +185,14 @@
                         <th><i class="fas fa-location-dot me-1"></i> Location</th>
                         <th><i class="fas fa-align-left me-1"></i> Description</th>
                         <th><i class="fas fa-users me-1"></i> Capacity</th>
+                        <th><i class="fas fa-circle-check me-1"></i> Availability</th>
                         <th style="text-align:center;"><i class="fas fa-sliders me-1"></i> Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model.Facilities)
+                    @foreach (var row in Model.Facilities)
                     {
+                        var item = row.Facility;
                         <tr>
                             <td>
                                 <img src="@(item.ImageUrl ?? "/images/placeholder-facility.jpg")"
@@ -226,23 +228,46 @@
                         </span>
                     </td>
                     <td>
-                        <div class="d-flex gap-2 justify-content-center flex-nowrap">
-                            <a asp-action="Details" asp-route-id="@item.FacilityId"
-                               class="btn-action btn-action-details">
-                                <i class="fas fa-eye"></i> Details
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@item.FacilityId"
-                               class="btn-action btn-action-edit">
-                                <i class="fas fa-pen"></i> Edit
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.FacilityId"
-                               class="btn-action btn-action-delete">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+                        @if (row.IsAvailable.HasValue)
+                                {
+                                    if (row.IsAvailable.Value)
+                                    {
+                                        <span class="badge bg-success-subtle text-success" style="font-size:0.8rem;">
+                                            <i class="fas fa-circle-check me-1"></i> Available
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger" style="font-size:0.8rem;">
+                                            <i class="fas fa-circle-xmark me-1"></i> Unavailable
+                                        </span>
+                                    }
                                 }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary" style="font-size:0.8rem;">
+                                        <i class="fas fa-circle-question me-1"></i> N/A
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-center flex-nowrap">
+                                    <a asp-action="Details" asp-route-id="@item.FacilityId"
+                                       class="btn-action btn-action-details">
+                                        <i class="fas fa-eye"></i> Details
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.FacilityId"
+                                       class="btn-action btn-action-edit">
+                                        <i class="fas fa-pen"></i> Edit
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.FacilityId"
+                                       class="btn-action btn-action-delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>

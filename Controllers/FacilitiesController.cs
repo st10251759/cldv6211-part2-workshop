@@ -53,45 +53,78 @@ namespace MediBook.Controllers
                     (f.Description != null && f.Description.ToLower().Contains(term)));
             }
 
-            // Only apply availability filtering if both dates are provided and valid
-            if (startDateTime.HasValue && endDateTime.HasValue)
-            {
-                if (startDateTime.Value < endDateTime.Value)
-                {
-                    // A reservation overlaps when:
-                    // existing.Start < selected.End && existing.End > selected.Start
-                    if (!string.IsNullOrWhiteSpace(availability))
-                    {
-                        var normalizedAvailability = availability.Trim().ToLower();
+            // Normalise availability string
+            var normalizedAvailability = availability?.Trim().ToLower();
 
-                        if (normalizedAvailability == "available")
-                        {
-                            query = query.Where(f =>
-                                !f.Reservations.Any(r =>
-                                    r.StartDate < endDateTime.Value &&
-                                    r.EndDate > startDateTime.Value));
-                        }
-                        else if (normalizedAvailability == "unavailable")
-                        {
-                            query = query.Where(f =>
-                                f.Reservations.Any(r =>
-                                    r.StartDate < endDateTime.Value &&
-                                    r.EndDate > startDateTime.Value));
-                        }
-                    }
+            // If user selected an availability filter, enforce that a valid date range is provided
+            if (!string.IsNullOrWhiteSpace(normalizedAvailability))
+            {
+                if (!startDateTime.HasValue || !endDateTime.HasValue)
+                {
+                    ModelState.AddModelError(string.Empty,
+                        "To filter by facility availability, please select both a start and an end date/time.");
                 }
-                else
+                else if (startDateTime.Value >= endDateTime.Value)
                 {
                     ModelState.AddModelError("endDateTime",
                         "End date/time must be after the start date/time.");
                 }
             }
 
+            // Only apply availability filter if model state is valid and a date range is present
+            if (ModelState.IsValid &&
+                startDateTime.HasValue &&
+                endDateTime.HasValue &&
+                startDateTime.Value < endDateTime.Value &&
+                !string.IsNullOrWhiteSpace(normalizedAvailability))
+            {
+                if (normalizedAvailability == "available")
+                {
+                    query = query.Where(f =>
+                        !f.Reservations.Any(r =>
+                            r.StartDate < endDateTime.Value &&
+                            r.EndDate > startDateTime.Value));
+                }
+                else if (normalizedAvailability == "unavailable")
+                {
+                    query = query.Where(f =>
+                        f.Reservations.Any(r =>
+                            r.StartDate < endDateTime.Value &&
+                            r.EndDate > startDateTime.Value));
+                }
+            }
+
+            var facilities = await query
+                .OrderBy(f => f.Name)
+                .ToListAsync();
+
+            // Build availability items for the view
+            var facilityItems = facilities
+                .Select(f =>
+                {
+                    bool? isAvailable = null;
+
+                    if (startDateTime.HasValue && endDateTime.HasValue &&
+                        startDateTime.Value < endDateTime.Value)
+                    {
+                        var hasOverlap = f.Reservations.Any(r =>
+                            r.StartDate < endDateTime.Value &&
+                            r.EndDate > startDateTime.Value);
+
+                        isAvailable = !hasOverlap;
+                    }
+
+                    return new FacilityAvailabilityItem
+                    {
+                        Facility = f,
+                        IsAvailable = isAvailable
+                    };
+                })
+                .ToList();
+
             var viewModel = new FacilityFilterViewModel
             {
-                Facilities = await query
-                    .OrderBy(f => f.Name)
-                    .ToListAsync(),
+                Facilities = facilityItems,
                 SearchText = searchText,
                 Availability = availability,
                 StartDateTime = startDateTime,
